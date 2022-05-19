@@ -11,7 +11,7 @@ img = cv2.imread(img_path)
 def nothing(x):
     pass
 
-#Trackbars
+##Trackbars
 cv2.namedWindow("Trackbars")
 cv2.createTrackbar("Lower Blue", "Trackbars", 0, 255, nothing)
 cv2.createTrackbar("Upper Blue", "Trackbars", 0, 255, nothing)
