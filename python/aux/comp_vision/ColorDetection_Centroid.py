@@ -128,7 +128,7 @@ while True:
     for countour in countours: 
         area = cv2.contourArea(countour)
         print(area)
-        if area>50: 
+        if area>7000: 
             M = cv2.moments(countour)
             #Centroid
             cx = int(M["m10"]/M["m00"])
