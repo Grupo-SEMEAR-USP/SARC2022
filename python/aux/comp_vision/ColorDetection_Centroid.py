@@ -57,7 +57,10 @@ while True:
     ##Uncomment the following line to read the video
     #ret, frame = cap.read()
     
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    #Filtragem da imagem
+    blurred_img = cv2.GaussianBlur(img, (5,5), 0)
+
+    hsv = cv2.cvtColor(blurred_img, cv2.COLOR_BGR2HSV)
 
     # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -116,25 +119,47 @@ while True:
     # Finding the centroid
 
 
-    #Achando os contornos
+    ##Achando os contornos
 
-    cnt = cv2.findContours(mask_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cnt = imutils.grab_contours(cnt)
+    # Primeira forma
+
+    countours, hierarchy= cv2.findContours(mask_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(img, countours, -1, (0,255,0), 3)
+    for countour in countours: 
+        area = cv2.contourArea(countour)
+        print(area)
+        if area>50: 
+            M = cv2.moments(countour)
+            #Centroid
+            cx = int(M["m10"]/M["m00"])
+            cy = int(M["m01"]/M["m00"])
+            #Criando um ponto para representar o centroid
+            cv2.circle(img, (cx,cy), 7, (255, 255, 255), -1)
+            #cv2.putText(img, "Centro", (cx-20, cy-20), cv2FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+            cv2.imshow("Centroid", img)
+
+
+
+
+    # Segunda forma
+
+    #cnt = cv2.findContours(mask_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #cnt = imutils.grab_contours(cnt)
     #Calculando os momentos
-    for i in cnt: 
-        area = cv2.contourArea(i)
-        if area>0.5:
-            print (area)
-            cv2.drawContours(img, [i], -1, (0,255,0), 3)
+    # for i in cnt: 
+    #     area = cv2.contourArea(i)
+    #     if area>0.5:
+    #         print (area)
+    #         cv2.drawContours(img, [i], -1, (0,255,0), 3)
 
-        M = cv2.moments(i)
-        #Centroid
-        cx = int(M["m10"]/M["m00"])
-        cy = int(M["m01"]/M["m00"])
-        #Criando um ponto para representar o centroid
-        cv2.circle(img, (cx,cy), 7, (255, 255, 255), -1)
-        cv2.putText(img, "Centro", (cx-20, cy-20), cv2FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-        cv2.imshow("Centroid", img)
+    #     M = cv2.moments(i)
+    #     #Centroid
+    #     cx = int(M["m10"]/M["m00"])
+    #     cy = int(M["m01"]/M["m00"])
+    #     #Criando um ponto para representar o centroid
+    #     cv2.circle(img, (cx,cy), 7, (255, 255, 255), -1)
+    #     cv2.putText(img, "Centro", (cx-20, cy-20), cv2FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+    #     cv2.imshow("Centroid", img)
     
     # print("centroid está em ", cx, cy)
 
