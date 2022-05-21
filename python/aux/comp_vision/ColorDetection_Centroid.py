@@ -163,10 +163,10 @@ while True:
     
     # print("centroid está em ", cx, cy)
 
-    k = cv2.waitKey(1) & 0xff
-    if k == 27:
-        break
+    #k = cv2.waitKey(1) & 0xff
+    #if k == 27:
+    #    break
+    k = cv2.waitKey(33)
 
-
-cap.release()
+#cap.release()
 cv2.destroyAllWindows()
