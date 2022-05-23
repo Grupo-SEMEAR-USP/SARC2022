@@ -1,6 +1,6 @@
 import numpy as np
 import rospy
-from vision.camera import uavCamera
+from camera.camera import uavCamera
 from gps.gps import uavGPS
 
 
