@@ -6,7 +6,7 @@ import imutils
 video_path = ''
 # cap = cv2.VideoCapture(0)
 
-img_path = 'imgs_to_test/scene_00.jpeg'
+img_path = 'imgs_to_test/scene_01.jpeg'
 img = cv2.imread(img_path)
 
 
@@ -97,8 +97,8 @@ while True:
     # cv2.imshow('Image2', result)
 
     # Setting ideal values for ranges in fire detection HSV
-    lower_hsv= np.array([0, 118, 24])
-    upper_hsv = np.array([27, 206, 116])
+    lower_hsv= np.array([0, 103, 45])
+    upper_hsv = np.array([12, 255, 255])
 
     #mask_hsv = cv2.inRange(hsv, (lower_H, lower_S, lower_V), (upper_H, upper_S, upper_V))
     mask_hsv = cv2.inRange(hsv, (lower_hsv), (upper_hsv))
@@ -163,10 +163,10 @@ while True:
     
     # print("centroid está em ", cx, cy)
 
-    #k = cv2.waitKey(1) & 0xff
-    #if k == 27:
-    #    break
-    k = cv2.waitKey(33)
+    k = cv2.waitKey(1) & 0xff
+    if k == 27:
+        break
 
-#cap.release()
+
+cap.release()
 cv2.destroyAllWindows()
