@@ -1,7 +1,7 @@
 import numpy as np
 import rospy
-from camera.camera import uavCamera
-from gps.gps import uavGPS
+from sensors.camera import uavCamera
+from sensors.gps import uavGPS
 
 
 '''
