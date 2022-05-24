@@ -24,35 +24,44 @@ class uavCamera:
         self.node_name = node_name
         self.subscriber_name = subscriber_name
         self.bridge = CvBridge()        
-        self.img_msg: Image = None
+        self.sub = rospy.Subscriber(name = self.subscriber_name,
+                                        data_class = Image,
+                                        callback = self.img_msg_to_cv)
         
         self.cv_img = np.zeros((img_height, img_width, 3), dtype= np.uint8)
         self.cv_img_hsv = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2HSV)
         self.i_see_fire: bool = False
 
         #Init camera node
-        rospy.init_node(node_name, anonymous = True)
-        rospy.loginfo("Camera started")
+        # rospy.init_node(node_name, anonymous = True)
+        # rospy.loginfo("Camera started")
 
-    def img_msg_to_cv(self, img_msg: Image):
+    # img(ROS) -> img(OpenCV)
+    def img_msg_to_cv(self, img_msg: Image) -> None:
         
         # msg.Image -> 'cv2.Image'
         self.cv_img = self.bridge.imgmsg_to_cv2(img_msg, 'passthrough')
 
-    def update_img_cv(self, img_msg: np.array):
+    # Subscribe and image frame update
+    def update_img_cv(self) -> None:
         
-        #Subscribe to camera in Gazebo
-        self.img_msg = rospy.Subscriber(self.subscriber_name, Image, img_msg_to_cv)
+        '''
+            img_msg: image input from ROS
+        '''
+        #Subscribe to camera in Gazebo and apply img_msg_to_cv() as callback function
+        # self.img_msg = rospy.Subscriber(name = self.subscriber_name,
+        #                                 data_class = Image,
+        #                                 callback = self.img_msg_to_cv)
 
         #Resize image
-        self.cv_img = cv2.resize(self.cv_img, (self.height, self.width))
+        self.cv_img = cv2.resize(self.cv_img, (self.img_height, self.img_width))
         self.cv_img_hsv = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2HSV)
         
 
     def color_detection(    self,
                             img_src: np.array,
                             lower_values: list,
-                            upper_values: list):
+                            upper_values: list) -> None:
         
         __img = np.copy(img_src)
 
@@ -65,3 +74,10 @@ class uavCamera:
                                                 mask=self.mask)                    
         
 
+    def update_state(self) -> None:        
+        self.sub = rospy.Subscriber(name = self.subscriber_name,
+                                        data_class = Image,
+                                        callback = self.img_msg_to_cv)
+        
+        
+        
