@@ -4,6 +4,10 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
+#TODO
+'''
+    1. Adicionar as funções de detecção de cores
+'''
 class uavCamera:
     
     #Colors of interest color = [blue, green, red]
@@ -40,7 +44,9 @@ class uavCamera:
     def img_msg_to_cv(self, img_msg: Image) -> None:
         
         # msg.Image -> 'cv2.Image'
-        self.cv_img = self.bridge.imgmsg_to_cv2(img_msg, 'passthrough')
+        cv_img_msg = self.bridge.imgmsg_to_cv2(img_msg, 'passthrough')
+        #Color correction
+        self.cv_img = cv2.cvtColor(cv_img_msg, cv2.COLOR_BGR2RGB)
 
     # Subscribe and image frame update
     def update_img_cv(self) -> None:
@@ -55,7 +61,8 @@ class uavCamera:
 
         #Resize image
         self.cv_img = cv2.resize(self.cv_img, (self.img_height, self.img_width))
-        self.cv_img_hsv = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2HSV)
+        
+        # self.cv_img_hsv = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2HSV)
         
 
     def color_detection(    self,
@@ -73,11 +80,18 @@ class uavCamera:
                                                 __img,
                                                 mask=self.mask)                    
         
+    def display_img(self):
+        cv2.imshow("uav View", self.cv_img)
+        
+        
 
     def update_state(self) -> None:        
         self.sub = rospy.Subscriber(name = self.subscriber_name,
                                         data_class = Image,
                                         callback = self.img_msg_to_cv)
+
+        
+
         
         
         

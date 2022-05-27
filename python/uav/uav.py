@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import cv2
 import rospy
 from sensors.camera import uavCamera
 from sensors.gps import uavGPS
@@ -11,6 +12,15 @@ from sensors.gps import uavGPS
     mais facil.
 
 '''
+
+#TODO:
+'''
+    1. Adicionar atributos importantes
+        - posição do uav
+        - i_see_fire = true/false
+        - etc
+'''
+
 class UAV:
 
     def __init__(self, node_name: str):
@@ -30,16 +40,23 @@ class UAV:
 
     def update_state(self) -> None:
         
-        # self.camera.update_state()
+        self.camera.update_state()
         self.gps.update_state()
-        print('GPS data: ', self.gps.odometry_msg)
+        # rospy.loginfo("I heard: %s", self.gps.odometry_msg)
         
-        if not rospy.is_shutdown():
-            rospy.spin()
         
 
 #uav de test
 meu_uav = UAV(node_name = 'meu_uav')
 
 if __name__ == '__main__':
-    meu_uav.update_state()
+    
+    while not rospy.is_shutdown():
+        meu_uav.update_state()
+        
+        meu_uav.camera.display_img()
+        k = cv2.waitKey(1) & 0xff
+        if k == 27:
+            break
+    cv2.destroyAllWindows()
+        
