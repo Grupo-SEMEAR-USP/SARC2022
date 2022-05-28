@@ -89,10 +89,10 @@ while True:
     upper = np.array([97, 90, 255])
 
     #mask = cv2.inRange(img, (lower_blueT, lower_greenT, lower_redT), (upper_blueT, upper_greenT, upper_redT)) # Com trackbar
-    mask_RGB = cv2.inRange(img, (lower), (upper))
-    result = cv2.bitwise_and(img, img, mask=mask_RGB)
+    # mask_RGB = cv2.inRange(img, (lower), (upper))
+    # result = cv2.bitwise_and(img, img, mask=mask_RGB)
     
-    # cv2.imshow("mask", mask)
+    # cv2.imshow("mask", mask_RGB)
     # cv2.imshow('Image', img)
     # cv2.imshow('Image2', result)
 
@@ -111,8 +111,8 @@ while True:
 
     #creating mask for yellow detection
 
-    lower_hsv_yellow= np.array([26, 128, 53])
-    upper_hsv_yellow = np.array([39, 184, 167])
+    lower_hsv_yellow= np.array([26, 130, 88])
+    upper_hsv_yellow = np.array([39, 193, 172])
 
     #mask_hsv_yellow = cv2.inRange(hsv, (lower_H, lower_S, lower_V), (upper_H, upper_S, upper_V))
     mask_hsv_yellow = cv2.inRange(hsv, (lower_hsv_yellow), (upper_hsv_yellow))
@@ -135,18 +135,17 @@ while True:
     # Primeira forma
 
     countours, hierarchy= cv2.findContours(mask_hsv_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(img, countours, -1, (0,255,0), 3)
+    cv2.drawContours(img, countours, 0, (0,255,0), 3)
     for countour in countours: 
         area = cv2.contourArea(countour)
         print(area)
-        if area>7000: 
+        if area>10000: 
             M = cv2.moments(countour)
             #Centroid
             cx = int(M["m10"]/M["m00"])
             cy = int(M["m01"]/M["m00"])
             #Criando um ponto para representar o centroid
             cv2.circle(img, (cx,cy), 7, (255, 255, 255), -1)
-            #cv2.putText(img, "Centro", (cx-20, cy-20), cv2FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
             cv2.imshow("Centroid", img)
 
 
