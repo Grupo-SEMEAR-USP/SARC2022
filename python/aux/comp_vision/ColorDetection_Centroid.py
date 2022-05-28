@@ -84,33 +84,44 @@ while True:
     lower_V = cv2.getTrackbarPos("low V", "controls")
     upper_V = cv2.getTrackbarPos("high V", "controls")
 
-    # Setting ideal values for ranges in fire detection RGB
+    # Setting ideal values for ranges in fire detection with RGB
     lower= np.array([0, 0, 81])
     upper = np.array([97, 90, 255])
 
     #mask = cv2.inRange(img, (lower_blueT, lower_greenT, lower_redT), (upper_blueT, upper_greenT, upper_redT)) # Com trackbar
-    mask = cv2.inRange(img, (lower), (upper))
-    result = cv2.bitwise_and(img, img, mask=mask)
+    mask_RGB = cv2.inRange(img, (lower), (upper))
+    result = cv2.bitwise_and(img, img, mask=mask_RGB)
     
     # cv2.imshow("mask", mask)
     # cv2.imshow('Image', img)
     # cv2.imshow('Image2', result)
 
-    # Setting ideal values for ranges in fire detection HSV
-    lower_hsv= np.array([0, 103, 45])
-    upper_hsv = np.array([12, 255, 255])
+    # Setting ideal values for ranges in fire detection (red) with HSV
+    lower_hsv_red= np.array([0, 103, 45])
+    upper_hsv_red = np.array([12, 255, 255])
 
     #mask_hsv = cv2.inRange(hsv, (lower_H, lower_S, lower_V), (upper_H, upper_S, upper_V))
-    mask_hsv = cv2.inRange(hsv, (lower_hsv), (upper_hsv))
-    result_hsv = cv2.bitwise_and(img, img, mask=mask_hsv)
+    mask_hsv_red = cv2.inRange(hsv, (lower_hsv_red), (upper_hsv_red))
+    result_hsv_red = cv2.bitwise_and(img, img, mask=mask_hsv_red)
 
-    cv2.imshow("mask", mask_hsv)
+    # cv2.imshow("mask", mask_hsv_red)
+    # cv2.imshow('Image', img)
+    # cv2.imshow('Image2', result_hsv_red)
+
+
+    #creating mask for yellow detection
+
+    lower_hsv_yellow= np.array([26, 128, 53])
+    upper_hsv_yellow = np.array([39, 184, 167])
+
+    #mask_hsv_yellow = cv2.inRange(hsv, (lower_H, lower_S, lower_V), (upper_H, upper_S, upper_V))
+    mask_hsv_yellow = cv2.inRange(hsv, (lower_hsv_yellow), (upper_hsv_yellow))
+    result_hsv_yellow = cv2.bitwise_and(img, img, mask=mask_hsv_yellow)
+
+    cv2.imshow("mask", mask_hsv_yellow)
     cv2.imshow('Image', img)
-    cv2.imshow('Image2', result_hsv)
+    cv2.imshow('Image2', result_hsv_yellow)
 
-   
-
-    # #Creating the mask for color detection
     
     # if cv2.waitKey(1) == ord('p'):
     #     cv2.destroyAllWindows()
@@ -123,7 +134,7 @@ while True:
 
     # Primeira forma
 
-    countours, hierarchy= cv2.findContours(mask_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    countours, hierarchy= cv2.findContours(mask_hsv_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(img, countours, -1, (0,255,0), 3)
     for countour in countours: 
         area = cv2.contourArea(countour)
