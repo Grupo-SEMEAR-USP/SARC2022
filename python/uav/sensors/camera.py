@@ -67,10 +67,17 @@ class uavCamera:
         
     def color_detection(    self,
                             img_src: np.array,
-                            lower_values_red: list,
-                            upper_values_red: list,
-                            lower_values_yellow: list,
-                            upper_values_yellow: list) -> None:
+                            #lower_values_red: list,
+                            #upper_values_red: list,
+                            #lower_values_yellow: list,
+                            #upper_values_yellow: list
+                            ) -> None:
+        
+        lower_values_red = np.array([0, 103, 45])
+        upper_values_red = np.array([12, 255, 255])
+        
+        lower_values_yellow= np.array([26, 130, 88])
+        upper_values_yellow = np.array([39, 193, 172])
         
         self.img = np.copy(img_src)
         
