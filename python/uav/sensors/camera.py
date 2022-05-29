@@ -70,7 +70,7 @@ class uavCamera:
                             lower_values_red: list,
                             upper_values_red: list,
                             lower_values_yellow: list,
-                            upper_values_yellow) -> None:
+                            upper_values_yellow: list) -> None:
         
         self.img = np.copy(img_src)
         
