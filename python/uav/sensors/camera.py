@@ -67,8 +67,10 @@ class uavCamera:
         
     def color_detection(    self,
                             img_src: np.array,
-                            lower_values: list,
-                            upper_values: list) -> None:
+                            lower_values_red: list,
+                            upper_values_red: list,
+                            lower_values_yellow: list,
+                            upper_values_yellow) -> None:
         
         self.img = np.copy(img_src)
         
@@ -76,17 +78,19 @@ class uavCamera:
 
         self.cv_img_hsv = cv2.cvtColor(self.blurred_img, cv2.COLOR_BGR2HSV)
 
-        self.mask = cv2.inRange( self.cv_img_hsv, lower_values, upper_values)
-
-        self.cv_img_masked = cv2.bitwise_and( self.img, self.img, mask=self.mask)
+        self.mask_red = cv2.inRange( self.cv_img_hsv, lower_values_red, upper_values_red)
+        self.cv_img_masked_red = cv2.bitwise_and( self.img, self.img, mask=self.mask_red)
+        
+        self.mask_yellow = cv2.inRange( self.cv_img_hsv, lower_values_yellow, upper_values_yellow)
+        self.cv_img_masked_yellow = cv2.bitwise_and( self.img, self.img, mask=self.mask_yellow)
 
                 
-    # Centroid calculations
+    # Centroid calculations for the fire (red)
     def find_centroid(    self
                             ) -> None:
                             
-        countours, hierarchy= cv2.findContours(self.mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours( self.mask, countours, 0, (0,255,0), 3)
+        countours, hierarchy= cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours( self.mask_red, countours, 0, (0,255,0), 3)
         for countour in countours: 
             self.area = cv2.contourArea(countour)
             #print(self.area)
@@ -105,7 +109,8 @@ class uavCamera:
 
     def display_img(self):
         cv2.imshow("uav View", self.cv_img)
-        
+        cv2.imshow("uav Mask", self.cv_img_masked_red)
+        cv2.imshow("uav Mask", self.cv_img_masked_yellow)
         
         
 
