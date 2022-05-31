@@ -5,10 +5,17 @@ from os.path import join, isfile
 
 
 class ImageSegmentation:
-    def __init__(self, src_directory: str, dst_directory: str):
+    def __init__(self, src_directory: str, dst_directory: str, img_range: list):
         
+        '''
+            Ex:
+            img_range = [1, 95] -> (labels das images 1 a 95)
+        '''
         self.src_directory = src_directory
         self.dst_directory = dst_directory
+        self.img_range = img_range
+        self.my_img_names: str = self.set_list_of_img_names(image_range = img_range)
+        print(self.my_img_names)
         self.current_image = None
         self.current_mask = None
 
@@ -16,11 +23,18 @@ class ImageSegmentation:
         self.src_images = []
         self.dst_images = []
         
+        
+
         #add all images in directory to self.src_images
         for file_name in listdir(self.src_directory):
-            # if '.jpeg' in file_name:
+            
+            #Verifica se a imagem ja possui ground thruth salvo
             if file_name not in listdir(self.dst_directory):
-                self.src_images.append(file_name)
+                
+                #Verifica se a imagem esta no range selecionado
+                if file_name[:-4] in self.my_img_names:
+                
+                    self.src_images.append(file_name)
         
 
         print(f'Total images: {len(self.src_images)}')
@@ -35,6 +49,23 @@ class ImageSegmentation:
         self.lower_red = 0
         self.upper_red = 0
             
+    
+    @staticmethod
+    def set_list_of_img_names(image_range: list):
+        num1 = image_range[0]
+        num2 = image_range[1]
+        names_str = ''
+
+        for i in range(num1, num2):
+            if i < 10:
+                names_str += f'00{i} '
+            
+            elif 10 <= i < 100:
+                names_str += f'0{i} '
+            
+            else:
+                names_str += f'{i} '
+        return names_str
         
 
     @staticmethod
@@ -57,6 +88,10 @@ class ImageSegmentation:
         img_index = 0
         while True:
             
+            if len(self.src_images) == 0:
+                print('src image is empty')
+                break
+
             current_file_path = self.src_directory + self.src_images[img_index]
             self.current_image = cv2.imread(filename = current_file_path)
             
