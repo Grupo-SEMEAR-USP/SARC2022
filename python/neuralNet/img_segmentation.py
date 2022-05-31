@@ -15,7 +15,7 @@ class ImageSegmentation:
         self.dst_directory = dst_directory
         self.img_range = img_range
         self.my_img_names: str = self.set_list_of_img_names(image_range = img_range)
-        print(self.my_img_names)
+
         self.current_image = None
         self.current_mask = None
 
