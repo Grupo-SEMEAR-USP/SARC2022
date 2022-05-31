@@ -1,7 +1,8 @@
 ## Instruções
 
-O script img_segmentation.py será usado para auxiliar a criação do ground thruth (máscaras ou labels) das imagens do dataset. Para isso, basta dar o comando no terminal: 
+O script img_segmentation.py será usado para auxiliar a criação do ground thruth (máscaras ou labels) das imagens do dataset. Para isso, no script *main.py* insira o range [num1, num2] das imagens que serão selecionadas para criar as máscaras. Após salvar as alterações, dê o comando no terminal: 
 `python3 main.py`. 
+
 
 **Comandos**: 
     
