@@ -34,7 +34,11 @@ class UAV:
                 
         self.gps = uavGPS(  node_name = 'odom_msgs',
                             subscriber_name = '/uav1/odometry/odom_gps')
-
+        
+        self.position = None
+        self.pos_x = None
+        self.pos_y = None
+        self.pos_z = None
         
         rospy.init_node(name = node_name)
 
@@ -42,7 +46,13 @@ class UAV:
         
         self.camera.update_state()
         self.gps.update_state()
-        # rospy.loginfo("I heard: %s", self.gps.odometry_msg)
+
+        self.position = self.gps.odometry_msg
+        # self.pos_x = self.position.x
+        # self.pos_y = self.position.y
+        # self.pos_z = self.position.z
+
+        rospy.loginfo("I heard: %s", self.position)
         
         
 
@@ -56,7 +66,6 @@ if __name__ == '__main__':
         
         meu_uav.camera.display_img()
         k = cv2.waitKey(1) & 0xff
-        if k == 27:
-            break
+        
     cv2.destroyAllWindows()
         

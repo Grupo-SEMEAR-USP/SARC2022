@@ -17,7 +17,7 @@ class uavGPS:
                                                 callback = self.callback)
         
     def callback(self, odom_msg: Odometry) -> None:
-        self.odometry_msg = odom_msg.pose
+        self.odometry_msg = odom_msg
             
 
     def update_state(self) -> None:

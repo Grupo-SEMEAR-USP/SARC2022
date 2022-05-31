@@ -66,12 +66,7 @@ class uavCamera:
         # self.cv_img_hsv = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2HSV)
         
     def color_detection(    self,
-                            img_src: np.array,
-                            #lower_values_red: list,
-                            #upper_values_red: list,
-                            #lower_values_yellow: list,
-                            #upper_values_yellow: list
-                            ) -> None:
+                            img_src: np.array) -> None:
         
         lower_values_red = np.array([0, 103, 45])
         upper_values_red = np.array([12, 255, 255])
@@ -79,35 +74,35 @@ class uavCamera:
         lower_values_yellow= np.array([26, 130, 88])
         upper_values_yellow = np.array([39, 193, 172])
         
-        self.img = np.copy(img_src)
+        _img = np.copy(img_src)
         
-        self.blurred_img = cv2.GaussianBlur( self.img, (5,5), 0)
+        _blurred_img = cv2.GaussianBlur( _img, (5,5), 0)
 
-        self.cv_img_hsv = cv2.cvtColor(self.blurred_img, cv2.COLOR_BGR2HSV)
+        _cv_img_hsv = cv2.cvtColor(_blurred_img, cv2.COLOR_BGR2HSV)
 
-        self.mask_red = cv2.inRange( self.cv_img_hsv, lower_values_red, upper_values_red)
-        self.cv_img_masked_red = cv2.bitwise_and( self.img, self.img, mask=self.mask_red)
+        self.mask_red = cv2.inRange( _cv_img_hsv, lower_values_red, upper_values_red)
+        self.cv_img_masked_red = cv2.bitwise_and( _img, _img, mask= self.mask_red)
         
-        self.mask_yellow = cv2.inRange( self.cv_img_hsv, lower_values_yellow, upper_values_yellow)
-        self.cv_img_masked_yellow = cv2.bitwise_and( self.img, self.img, mask=self.mask_yellow)
+        self.mask_yellow = cv2.inRange( _cv_img_hsv, lower_values_yellow, upper_values_yellow)
+        self.cv_img_masked_yellow = cv2.bitwise_and( _img, _img, mask= self.mask_yellow)
 
                 
     # Centroid calculations for the fire (red)
-    def find_centroid(    self
-                            ) -> None:
+    def find_centroid(self) -> None:
                             
-        countours, hierarchy= cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours( self.mask_red, countours, 0, (0,255,0), 3)
+        
         for countour in countours: 
-            self.area = cv2.contourArea(countour)
+            self.red_area = cv2.contourArea(countour)
             #print(self.area)
-            if self.area>10000: 
-                self.moment = cv2.moments(countour)
+            if self.red_area>10000: 
+                self.red_moment = cv2.moments(countour)
                 # position of the centroid
-                self.cx = int(self.moment["m10"]/self.moment["m00"]) 
-                self.cy = int(self.moment["m01"]/self.moment["m00"])
+                self.red_cx = int(self.red_moment["m10"]/self.red_moment["m00"]) 
+                self.red_cy = int(self.red_moment["m01"]/self.red_moment["m00"])
                 #  Creating a point to represent the centroid 
-                cv2.circle( self.img, (self.cx, self.cy), 7, (255, 255, 255), -1)
+                cv2.circle( self.cv_img, (self.red_cx, self.red_cy), 7, (255, 255, 255), -1)
 
     
 
@@ -126,5 +121,6 @@ class uavCamera:
                                         data_class = Image,
                                         callback = self.img_msg_to_cv)
         
-        
+        self.color_detection(img_src = self.cv_img)
+        self.find_centroid()
         
