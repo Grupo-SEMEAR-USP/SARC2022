@@ -5,6 +5,19 @@ import logging
 import rospy
 from sensors.camera import uavCamera
 from sensors.gps import uavGPS
+from re import A
+from mavros_msgs import srv
+from matplotlib.pyplot import connect
+
+#Importing mrs_services
+from mrs_uav_trajectory_generation import srv
+from mrs_uav_odometry import srv
+from mrs_uav_trackers import srv
+from controller_manager import srv
+from uav import srv
+from std_srvs import Trigger
+
+
 
 
 '''
@@ -81,8 +94,36 @@ class UAV:
         #TODO: Listar os servicos utilizados
         #Takeoff
         rospy.wait_for_service(f'{self.node_name}/mavros/cmd/takeoff', timeout = 1)
-        # self.takeoff(f'{self.node_name}/mavros/cmd/takeoff', srv.foo)
+        #self.takeoff(f'{self.node_name}/mavros/cmd/takeoff', srv.foo)
+
+        # Service for emergency hover
+        rospy.wait_for_service(f'{self.node_name}/control_manager/ehover', timeout = 1)
+        self.ehover = rospy.ServiceProxy(f'{self.node_name}/control_manager/ehover', srv.Ehover)
+
+        # Services for odometry
+        rospy.wait_for_service(f'{self.node_name}/odometry/uav_state', timeout = 1)
+        self.uav_state = rospy.ServiceProxy(f'{self.node_name}odometry/uav_state', srv.Uav_State)
         
+        # Services for drone Control and Trajetory Generation
+
+        rospy.wait_for_service(f'{self.node_name}/control_manager/reference', timeout = 1)
+        self.reference = rospy.ServiceProxy(f'{self.node_name}/control_manager/reference', srv.Reference)
+
+        rospy.wait_for_service(f'{self.node_name}/control_manager/velocity_reference', timeout = 1)
+        self.velocity_reference = rospy.ServiceProxy(f'{self.node_name}/control_manager/velocity_reference', srv.Velocity_Reference)
+
+        rospy.wait_for_service(f'{self.node_name}/control_manager/goto_trajectory_start', timeout = 1)
+        self.goto_trajectory_start = rospy.ServiceProxy(f'{self.node_name}/control_manager/goto_trajectory_start', srv.Goto_Trajectory_Start)
+
+        rospy.wait_for_service(f'{self.node_name}/control_manager/start_trajectory_tracking', timeout = 1)
+        self.start_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/start_trajectory_tracking', srv.Start_Trajectory_Tracking)
+
+        rospy.wait_for_service(f'{self.node_name}/control_manager/stop_trajectory_tracking', timeout = 1)
+        self.stop_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/stop_trajectory_tracking', srv.Stop_Trajectory_Tracking)
+        
+        rospy.wait_for_service(f'{self.node_name}/trajectory_generation/path', timeout = 1)
+        self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', srv.foo)
+
 
 
     def save_data(self, data, append_here: list, rate_hz = 0.5):
