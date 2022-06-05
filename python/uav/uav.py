@@ -122,7 +122,7 @@ class UAV:
         self.stop_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/stop_trajectory_tracking', srv.Stop_Trajectory_Tracking)
         
         rospy.wait_for_service(f'{self.node_name}/trajectory_generation/path', timeout = 1)
-        self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', srv.foo)
+        self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', srv.Path)
 
 
 
@@ -172,21 +172,34 @@ class UAV:
         rospy.loginfo("Time passed: %s", self.time_now.secs - self.t0.secs)
         rospy.loginfo("uav position: %s", self.previous_positions['raw'][-1])
         
+    def trajectory_generation(self) -> None:
+        self.configure()
+        # Começando com pontos genéricos para testar
+        sucess, frase = self.path(frame_id='gps_origin', use_heading = '0', fly_now = '1', stop_at_waypoints = '0', loop = '1', Reference = '[0, 0, 30, 0], [0, 30, 30, 0], [30, 30, 30, 0], [30, 0, 30, 0]')
+        self.goto_trajectory_start()
+        self.start_trajectory_tracking()
         
-        
+
+    def stop_trajectory(self) -> None:
+        self.stop_trajectory_tracking()
+
+    def go_to_point(self) -> None:
+        self.reference(frame_id = 'gps_origin', position = '[50 50 30]', heading = '0' )
+
+
 
 #uav de test
-meu_uav = UAV(node_name = 'meu_uav')
+# meu_uav = UAV(node_name = 'meu_uav')
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     
 
     
-    while not rospy.is_shutdown():
-        meu_uav.update_state()
+#     while not rospy.is_shutdown():
+#         meu_uav.update_state()
 
-        # meu_uav.camera.display_img()
-        k = cv2.waitKey(1) & 0xff
+#         # meu_uav.camera.display_img()
+#         k = cv2.waitKey(1) & 0xff
         
-    cv2.destroyAllWindows()
+#     cv2.destroyAllWindows()
         
