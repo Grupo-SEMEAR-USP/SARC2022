@@ -32,14 +32,15 @@ class uavCamera:
         self.sub = rospy.Subscriber(name = self.subscriber_name,
                                         data_class = Image,
                                         callback = self.img_msg_to_cv)
+
+
         self.cv_img = np.zeros((img_height, img_width, 3), dtype= np.uint8)
         self.blurred_img = cv2.GaussianBlur( self.cv_img, (5,5), 0)
         self.cv_img_hsv = cv2.cvtColor(self.blurred_img, cv2.COLOR_BGR2HSV)
+        
         self.i_see_fire: bool = False
 
-        #Init camera node
-        # rospy.init_node(node_name, anonymous = True)
-        # rospy.loginfo("Camera started")
+        
 
     # img(ROS) -> img(OpenCV)
     def img_msg_to_cv(self, img_msg: Image) -> None:
