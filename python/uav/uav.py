@@ -6,6 +6,15 @@ import logging
 import rospy
 from sensors.camera import uavCamera
 from sensors.gps import uavGPS
+# from mavros_msgs import srv
+
+#Importing mrs_services 
+from mrs_msgs.srv import    _Vec4, _ReferenceStampedSrv,    \
+                            _VelocityReferenceStampedSrv,   \
+                            _TrajectoryReferenceSrv
+
+from mrs_msgs.msg import _ReferenceStamped
+from std_srvs.srv import _Trigger
 
 
 '''
@@ -70,22 +79,57 @@ class UAV:
 
 
         rospy.init_node(name = node_name)
-        
+        self.configure()
+
         self.t0 = rospy.get_rostime()
         self.time_now = rospy.get_rostime()
 
         #Store auxiliary variables in 'aux_vars_dict'
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
 
+        rospy.loginfo(f'UAV{self.node_name} INIT SUCCEEDED')
+
     def configure(self):
         
         logging.debug("Waiting MRS services [...]")
         rospy.loginfo("Waiting MRS services [...]")
 
-        #TODO: Listar os servicos utilizados
-        #Takeoff
-        rospy.wait_for_service(f'{self.node_name}/mavros/cmd/takeoff', timeout = 1)
-        # self.takeoff(f'{self.node_name}/mavros/cmd/takeoff', srv.foo)
+        ####* https://ctu-mrs.github.io/docs/system/uav_ros_interface.html
+
+        #!Obs:
+        '''
+            Tem que testar se essa é a estrutura correta de usar os serviços, 
+            colocando todos na funcao configure().
+            
+        '''
+        rospy.wait_for_service(f'{self.node_name}/uav_manager/takeoff')
+        rospy.wait_for_service(f'{self.node_name}/uav_manager/land')
+        
+        rospy.wait_for_service(f'{self.node_name}/control_manager/reference')
+        rospy.wait_for_service(f'{self.node_name}/control_manager/trajectory_reference')
+
+        rospy.wait_for_service(f'{self.node_name}/control_manager/goto_trajectory_start')
+        rospy.wait_for_service(f'{self.node_name}/control_manager/start_trajectory_tracking')
+        rospy.wait_for_service(f'{self.node_name}/control_manager/stop_trajectory_tracking')
+        rospy.wait_for_service(f'{self.node_name}/control_manager/resume_trajectory_tracking')
+        
+
+        # try:
+        self.takeoff(f'{self.node_name}/uav_manager/takeoff', _Trigger)
+        self.land(f'{self.node_name}/uav_manager/land', _Trigger)
+        self.land_there(f'{self.node_name}/uav_manager/land_there', _ReferenceStamped)
+        
+        self.fly_to_xyz_in_a_given_frame(f'{self.node_name}/control_manager/reference', _ReferenceStampedSrv)
+        self.fly_along_trajectory(f'{self.node_name}/control_manager/trajectory_reference', _TrajectoryReferenceSrv)
+
+        self.fly_to_1st_xyz_in_trajectory(f'{self.node_name}/control_manager/goto_trajectory_start', _Trigger)
+        self.start_trajectory_tracking(f'{self.node}/control_manager/start_trajectory_tracking', _Trigger)
+        self.stop_trajectory_tracking(f'{self.node}/control_manager/stop_trajectory_tracking', _Trigger)
+        self.resume_trajectory_tracking(f'{self.node}/control_manager/resume_trajectory_tracking', _Trigger)
+        
+        # except rospy.ServiceException as e:
+        #     print('Service call failed: %s', e)
+
         
 
     def fire_detection_mapping( self,
@@ -93,7 +137,7 @@ class UAV:
                                 min_area_threshold: float,
                                 img_to_save: np.array):
         ''' 
-            Track
+            If an uav detected fire, save its state (the image, fire area, position, time, etc)
         '''
         self.did_i_detect_fire = (fire_pixel_area > min_area_threshold)
 
@@ -181,34 +225,36 @@ class UAV:
                 
         rospy.loginfo("uav position:\n%s", self.position)
         
-        
+    def trajectory_generation(self) -> None:
+        self.configure()
+        # Começando com pontos genéricos para testar
+        sucess, frase = self.path(frame_id='gps_origin', use_heading = '0', fly_now = '1', stop_at_waypoints = '0', loop = '1', Reference = '[0, 0, 30, 0], [0, 30, 30, 0], [30, 30, 30, 0], [30, 0, 30, 0]')
+        self.goto_trajectory_start()
+        self.start_trajectory_tracking()
         
 
-# #uav de test
-# meu_uav = UAV(node_name = 'meu_uav', uav_id = '01')
+    def stop_trajectory(self) -> None:
+        self.stop_trajectory_tracking()
 
-# if __name__ == '__main__':
+    def go_to_point(self) -> None:
+        self.reference(frame_id = 'gps_origin', position = '[50 50 30]', heading = '0' )
+
+
+
+#uav de test
+meu_uav = UAV(node_name = 'meu_uav', uav_id = '01')
+
+if __name__ == '__main__':
     
 
     
-#     while not rospy.is_shutdown():
-#         meu_uav.update_state()
+    while not rospy.is_shutdown():
+        meu_uav.update_state()
         
 
-#     #     meu_uav.camera.display_img()
-#     #     k = cv2.waitKey(1) & 0xff
+    #     meu_uav.camera.display_img()
+    #     k = cv2.waitKey(1) & 0xff
 
-#     #     if int(meu_uav.time_now.secs - meu_uav.t0.secs) == 120:
-            
-#     #         #save data
-#     #         df_dict = { 'time': meu_uav.previous_positions['time'],
-#     #                     'x': meu_uav.previous_positions['x'],
-#     #                     'y': meu_uav.previous_positions['y'],
-#     #                     'z': meu_uav.previous_positions['z']}
-            
-#     #         df = pd.DataFrame(df_dict)
-#     #         df.to_csv('Positions.csv')
-
-        
-#     # cv2.destroyAllWindows()
+    
+    # cv2.destroyAllWindows()
         
