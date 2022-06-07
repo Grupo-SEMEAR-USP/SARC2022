@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
+from turtle import heading
 import numpy as np
+import os
 import cv2
-import pandas as pd
+#import pandas as pd
 import logging
 import rospy
 from sensors.camera import uavCamera
 from sensors.gps import uavGPS
 # from mavros_msgs import srv
 
+from geometry_msgs.msg import Point
 #Importing mrs_services 
 from mrs_msgs.srv import    _Vec4, _ReferenceStampedSrv,    \
                             _VelocityReferenceStampedSrv,   \
-                            _TrajectoryReferenceSrv
+                            _TrajectoryReferenceSrv,        \
+                             _PathSrv
 
-from mrs_msgs.msg import _ReferenceStamped
+#from mrs_msgs.msg import _ReferenceStamped
 from std_srvs.srv import _Trigger
+from std_msgs.msg import Header
+from mrs_msgs.msg import Path, Reference
+
 
 
 '''
@@ -36,7 +43,7 @@ class UAV:
 
     def __init__(self, node_name: str, uav_id: str):
         
-
+        self.uav_name = os.environ.get('UAV_NAME')
         self.node_name = node_name
         self.uav_id = uav_id
 
@@ -102,30 +109,34 @@ class UAV:
             colocando todos na funcao configure().
             
         '''
-        rospy.wait_for_service(f'{self.node_name}/uav_manager/takeoff')
-        rospy.wait_for_service(f'{self.node_name}/uav_manager/land')
+        rospy.wait_for_service(f'{self.node_name}/uav_manager/takeoff', timeout = None)
+        rospy.wait_for_service(f'{self.node_name}/uav_manager/land', timeout = None)
         
-        rospy.wait_for_service(f'{self.node_name}/control_manager/reference')
-        rospy.wait_for_service(f'{self.node_name}/control_manager/trajectory_reference')
+        rospy.wait_for_service(f'{self.node_name}/control_manager/reference', timeout = None)
+        rospy.wait_for_service(f'{self.node_name}/control_manager/trajectory_reference', timeout = None)
 
-        rospy.wait_for_service(f'{self.node_name}/control_manager/goto_trajectory_start')
-        rospy.wait_for_service(f'{self.node_name}/control_manager/start_trajectory_tracking')
-        rospy.wait_for_service(f'{self.node_name}/control_manager/stop_trajectory_tracking')
-        rospy.wait_for_service(f'{self.node_name}/control_manager/resume_trajectory_tracking')
+        rospy.wait_for_service(f'{self.node_name}/control_manager/goto_trajectory_start', timeout = None)
+        rospy.wait_for_service(f'{self.node_name}/control_manager/start_trajectory_tracking', timeout = None)
+        rospy.wait_for_service(f'{self.node_name}/control_manager/stop_trajectory_tracking', timeout = None)
+        rospy.wait_for_service(f'{self.node_name}/control_manager/resume_trajectory_tracking', timeout = None)
+
+        rospy.wait_for_service(f'{self.node_name}/trajectory_generation/path', timeout = None)
+
         
 
         # try:
-        self.takeoff(f'{self.node_name}/uav_manager/takeoff', _Trigger)
-        self.land(f'{self.node_name}/uav_manager/land', _Trigger)
-        self.land_there(f'{self.node_name}/uav_manager/land_there', _ReferenceStamped)
+        # self.takeoff(f'{self.node_name}/uav_manager/takeoff', _Trigger)
+        # self.land(f'{self.node_name}/uav_manager/land', _Trigger)
+        # self.land_there(f'{self.node_name}/uav_manager/land_there', _ReferenceStamped)
         
-        self.fly_to_xyz_in_a_given_frame(f'{self.node_name}/control_manager/reference', _ReferenceStampedSrv)
-        self.fly_along_trajectory(f'{self.node_name}/control_manager/trajectory_reference', _TrajectoryReferenceSrv)
+        self.fly_to_xyz_in_a_given_frame = rospy.ServiceProxy(f'{self.node_name}/control_manager/reference', _ReferenceStampedSrv.ReferenceStampedSrv)
+        self.fly_along_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/trajectory_reference', _TrajectoryReferenceSrv.TrajectoryReferenceSrv)
 
-        self.fly_to_1st_xyz_in_trajectory(f'{self.node_name}/control_manager/goto_trajectory_start', _Trigger)
-        self.start_trajectory_tracking(f'{self.node}/control_manager/start_trajectory_tracking', _Trigger)
-        self.stop_trajectory_tracking(f'{self.node}/control_manager/stop_trajectory_tracking', _Trigger)
-        self.resume_trajectory_tracking(f'{self.node}/control_manager/resume_trajectory_tracking', _Trigger)
+        self.fly_to_1st_xyz_in_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/goto_trajectory_start', _Trigger.Trigger)
+        self.start_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/start_trajectory_tracking', _Trigger.Trigger)
+        self.stop_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/stop_trajectory_tracking', _Trigger.Trigger)
+        self.resume_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/resume_trajectory_tracking', _Trigger.Trigger)
+        self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', _PathSrv.PathSrv)
         
         # except rospy.ServiceException as e:
         #     print('Service call failed: %s', e)
@@ -225,31 +236,78 @@ class UAV:
                 
         rospy.loginfo("uav position:\n%s", self.position)
         
-    def trajectory_generation(self) -> None:
-        self.configure()
-        # Começando com pontos genéricos para testar
-        sucess, frase = self.path(frame_id='gps_origin', use_heading = '0', fly_now = '1', stop_at_waypoints = '0', loop = '1', Reference = '[0, 0, 30, 0], [0, 30, 30, 0], [30, 30, 30, 0], [30, 0, 30, 0]')
-        self.goto_trajectory_start()
-        self.start_trajectory_tracking()
+    def trajectory_generation(self, points, id) -> None:
+         
+        # Defining the services parameters
         
+        msg_trajectory = Path()
+        # Defining the Header
+        msg_trajectory.header = Header()
+        msg_trajectory.header.seq = 0
+        msg_trajectory.header.stamp = rospy.get_rostime()
+        msg_trajectory.header.frame_id = 'gps_origin'
+
+        msg_trajectory.input_id = 1
+
+        msg_trajectory.use_heading = True
+        msg_trajectory.fly_now = False
+        msg_trajectory.stop_at_waypoints = False
+        msg_trajectory.loop = False
+
+        msg_trajectory.override_constraints = False
+
+        msg_trajectory.relax_heading = False
+        
+        for point in points:
+            ref = Reference()
+
+            ref.position = Point()
+            ref.position.x = point[0]
+            ref.position.y = point[1]
+            ref.position.z = point[2]
+
+            ref.heading = point[3]
+
+            msg_trajectory.points.append(ref)
+
+        path = self.path(msg_trajectory)
+
+        
+    def start_trajectory(self) -> None:
+
+        self.fly_to_1st_xyz_in_trajectory()
+        self.start_trajectory_tracking()
 
     def stop_trajectory(self) -> None:
+
         self.stop_trajectory_tracking()
 
-    def go_to_point(self) -> None:
-        self.reference(frame_id = 'gps_origin', position = '[50 50 30]', heading = '0' )
+    def go_to_point(self, position) -> None:
+        
+        msg_point_header = Header()
+        msg_point_reference = Reference()
 
+        msg_point_header.seq = 0
+        msg_point_header.stamp = rospy.get_rostime()
+        msg_point_header.frame_id = 'gps_origin'
 
+        msg_point_reference.position = Point()
+        msg_point_reference.position.x = position[0]
+        msg_point_reference.position.y = position[1]
+        msg_point_reference.position.z = position[2]
+        msg_point_reference.heading = position [3]
+
+        self.fly_to_xyz_in_a_given_frame(msg_point_header, msg_point_reference)
 
 #uav de test
-meu_uav = UAV(node_name = 'meu_uav', uav_id = '01')
+# meu_uav = UAV(node_name = 'meu_uav', uav_id = '01')
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     
 
     
-    while not rospy.is_shutdown():
-        meu_uav.update_state()
+#     while not rospy.is_shutdown():
+#         meu_uav.update_state()
         
 
     #     meu_uav.camera.display_img()
@@ -258,3 +316,4 @@ if __name__ == '__main__':
     
     # cv2.destroyAllWindows()
         
+
