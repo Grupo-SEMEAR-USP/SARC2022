@@ -25,8 +25,8 @@ class uavGPS:
 
 
     def update_state(self) -> None:
-        self.sub = rospy.Subscriber(   name = self.subscriber_name,
+        '''self.sub = rospy.Subscriber(   name = self.subscriber_name,
                                                 data_class = Odometry,
-                                                callback = self.callback)
+                                                callback = self.callback)'''
     
     

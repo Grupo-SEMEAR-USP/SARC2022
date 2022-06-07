@@ -31,7 +31,8 @@ class uavCamera:
         self.bridge = CvBridge()        
         self.sub = rospy.Subscriber(name = self.subscriber_name,
                                         data_class = Image,
-                                        callback = self.img_msg_to_cv)
+                                        callback = self.img_msg_to_cv,
+                                        queue_size=1)
 
 
         self.cv_img = np.zeros((img_height, img_width, 3), dtype= np.uint8)
@@ -39,6 +40,7 @@ class uavCamera:
         self.cv_img_hsv = cv2.cvtColor(self.blurred_img, cv2.COLOR_BGR2HSV)
         
         self.i_see_fire: bool = False
+        self.max_fire_area = None
 
         
 
@@ -47,6 +49,7 @@ class uavCamera:
         
         # msg.Image -> 'cv2.Image'
         cv_img_msg = self.bridge.imgmsg_to_cv2(img_msg, 'passthrough')
+        #  cv_img_msg = np.asarray(self.bridge.imgmsg_to_cv2(img_msg, 'passthrough'))
         #Color correction
         self.cv_img = cv2.cvtColor(cv_img_msg, cv2.COLOR_BGR2RGB)
 
@@ -89,7 +92,8 @@ class uavCamera:
 
                 
     # Centroid calculations for the fire (red)
-    def find_centroid(self) -> None:
+    def find_centroid(self) -> float or None:
+        max_area = None
                             
         countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours( self.mask_red, countours, 0, (0,255,0), 3)
@@ -97,7 +101,8 @@ class uavCamera:
         for countour in countours: 
             self.red_area = cv2.contourArea(countour)
             #print(self.area)
-            if self.red_area>10000: 
+            if self.red_area>5000: 
+                max_area = max(self.red_area, max_area) if max_area else self.red_area
                 self.red_moment = cv2.moments(countour)
                 # position of the centroid
                 self.red_cx = int(self.red_moment["m10"]/self.red_moment["m00"]) 
@@ -105,23 +110,27 @@ class uavCamera:
                 #  Creating a point to represent the centroid 
                 cv2.circle( self.cv_img, (self.red_cx, self.red_cy), 7, (255, 255, 255), -1)
 
-    
+        return max_area    
 
 
 
 
-    def display_img(self):
+    def display_img(self, all: bool = False):
         cv2.imshow("uav View", self.cv_img)
-        cv2.imshow("uav Mask", self.cv_img_masked_red)
-        cv2.imshow("uav Mask", self.cv_img_masked_yellow)
+        if all:
+            cv2.imshow("uav Mask Red", self.cv_img_masked_red)
+            cv2.imshow("uav Mask Yellow", self.cv_img_masked_yellow)
+
+        k = cv2.waitKey(33)
         
         
 
     def update_state(self) -> None:        
-        self.sub = rospy.Subscriber(name = self.subscriber_name,
+        '''self.sub = rospy.Subscriber(name = self.subscriber_name,
                                         data_class = Image,
-                                        callback = self.img_msg_to_cv)
+                                        callback = self.img_msg_to_cv,
+                                        queue_size=1)'''
         
         self.color_detection(img_src = self.cv_img)
-        self.find_centroid()
+        self.max_fire_area = self.find_centroid()
         

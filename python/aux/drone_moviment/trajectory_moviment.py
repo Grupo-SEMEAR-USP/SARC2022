@@ -9,7 +9,7 @@ from std_msgs.msg import Header
 from std_srvs.srv import Trigger
 from mrs_msgs.srv import PathSrv
 
-class uavTest:
+class UAVTest:
   def __init__(self) -> None:
     self.points_1 = [[0.0, 0.0, 30.0, 0.0], [0.0, 30.0, 30.0, 0.0], [30.0, 30.0, 30.0, 0.0], [30.0, 0.0, 30.0, 0.0]]
     self.points_2 = [[(5*np.cos(t))/(1+np.sin(t)**2), (5*np.sin(t)*np.cos(t))/(1+np.sin(t)**2), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=20))]
@@ -123,7 +123,7 @@ class uavTest:
 
 def main():
 
-  uav = uavTest()
+  uav = UAVTest()
 
   input('teste1\n')
 
