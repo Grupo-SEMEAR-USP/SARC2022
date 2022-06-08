@@ -18,7 +18,7 @@ def create_patrol_route(initialPos: Point, altitude: float, mapSize: tuple, step
         steps += 1
 
     for i, angle in enumerate(np.linspace(0.0, 2*np.pi, steps, False)):
-        x = initialPos.x + np.sin(angle) * radius
+        x = initialPos.x - np.sin(angle) * radius
         y = initialPos.y + np.cos(angle) * radius
         
         newPos = [x, y, altitude, 0.0]
@@ -37,7 +37,7 @@ def main():
     while not myUav.position:
         myUav.update_state()
 
-    trajectory = create_patrol_route(myUav.position, 30.0, (100, 100), 4)
+    trajectory = create_patrol_route(myUav.position, 30.0, (100, 100), 8)
 
     myUav.trajectory_generation(trajectory, 1)
     myUav.start_trajectory()
@@ -45,7 +45,7 @@ def main():
     while not rospy.is_shutdown():
         myUav.update_state()
 
-        print(f'Vi fogo: {myUav.did_i_detect_fire}')
+        #print(f'Vi fogo: {myUav.did_i_detect_fire}')
         if myUav.did_i_detect_fire:
             cv2.imwrite('images/im.jpg', myUav.i_did_detect_fire['fire_img'][0])
             myUav.stop_trajectory()

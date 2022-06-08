@@ -224,7 +224,7 @@ class UAV:
         self.pos_y = self.position.y
         self.pos_z = self.position.z
 
-        #self.camera.display_img()
+        self.camera.display_img()
         
 
         #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 

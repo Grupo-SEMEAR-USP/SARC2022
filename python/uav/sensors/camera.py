@@ -126,10 +126,6 @@ class uavCamera:
         
 
     def update_state(self) -> None:        
-        '''self.sub = rospy.Subscriber(name = self.subscriber_name,
-                                        data_class = Image,
-                                        callback = self.img_msg_to_cv,
-                                        queue_size=1)'''
         
         self.color_detection(img_src = self.cv_img)
         self.max_fire_area = self.find_centroid()
