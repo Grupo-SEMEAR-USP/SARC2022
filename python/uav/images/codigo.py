@@ -1,9 +1,11 @@
 import cv2
 import os
 
+path = 'adicionar_path'
+
 def generate_video():
     image_folder = '.' # make sure to use your folder
-    video_name = 'film.mp4'
+    video_name = path + 'film.mp4'
       
     images = [img for img in os.listdir(image_folder)
               if img.endswith(".jpg") and img.startswith('img')]
