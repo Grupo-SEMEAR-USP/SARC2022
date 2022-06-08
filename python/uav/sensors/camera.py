@@ -90,18 +90,18 @@ class uavCamera:
         self.mask_yellow = cv2.inRange( _cv_img_hsv, lower_values_yellow, upper_values_yellow)
         self.cv_img_masked_yellow = cv2.bitwise_and( _img, _img, mask= self.mask_yellow)
 
-                
+
     # Centroid calculations for the fire (red)
     def find_centroid(self) -> float or None:
         max_area = None
-                            
+        
         countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours( self.mask_red, countours, 0, (0,255,0), 3)
         
         for countour in countours: 
             self.red_area = cv2.contourArea(countour)
             #print(self.area)
-            if self.red_area>5000: 
+            if self.red_area>10000: 
                 max_area = max(self.red_area, max_area) if max_area else self.red_area
                 self.red_moment = cv2.moments(countour)
                 # position of the centroid

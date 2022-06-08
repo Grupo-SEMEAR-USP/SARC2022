@@ -40,7 +40,7 @@ def main():
     trajectory = create_patrol_route(myUav.position, 30.0, (100, 100), 8)
 
     myUav.trajectory_generation(trajectory, 1)
-    myUav.start_trajectory()
+    #myUav.start_trajectory()
 
     while not rospy.is_shutdown():
         myUav.update_state()
