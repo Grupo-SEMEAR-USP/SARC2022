@@ -12,7 +12,8 @@ from mrs_msgs.srv import PathSrv
 class UAVTest:
   def __init__(self) -> None:
     self.points_1 = [[0.0, 0.0, 30.0, 0.0], [0.0, 30.0, 30.0, 0.0], [30.0, 30.0, 30.0, 0.0], [30.0, 0.0, 30.0, 0.0]]
-    self.points_2 = [[(5*np.cos(t))/(1+np.sin(t)**2), (5*np.sin(t)*np.cos(t))/(1+np.sin(t)**2), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=20))]
+    self.points_2 = [[(5*np.cos(t))/(1+np.sin(t)**2), (5*np.sin(t)*np.cos(t))/(1+np.sin(t)**2), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=30))]
+    self.points_3 = [[5*np.cos(t), 5*np.sin(t), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=30))]
 
     self.uav_name = os.environ.get('UAV_NAME')
 
@@ -27,16 +28,8 @@ class UAVTest:
     rospy.wait_for_service(f'{self.uav_name}/trajectory_generation/path', timeout=None)
     self.planner = rospy.ServiceProxy(f'{self.uav_name}/trajectory_generation/path', PathSrv)
 
-    rospy.wait_for_service(f'{self.uav_name}/control_manager/goto_trajectory_start', timeout=None)
-    self.goto_start = rospy.ServiceProxy(f'{self.uav_name}/control_manager/goto_trajectory_start', Trigger)
-
     rospy.wait_for_service(f'{self.uav_name}/control_manager/start_trajectory_tracking', timeout=None)
     self.start_mov = rospy.ServiceProxy(f'{self.uav_name}/control_manager/start_trajectory_tracking', Trigger)
-
-  def goto_start_point_v1(self) -> None:
-    res = self.goto_start()
-
-    print(f'Goto Start Position\nSuccess: {res.success}\nMessage: {res.message}')
 
   def goto_start_point_v2(self) -> None:
     msg = Path()
@@ -97,7 +90,7 @@ class UAVTest:
     msg.relax_heading = False
 
     msg.points = []
-    for point in self.points_2:
+    for point in self.points_3:
       ref = Reference()
 
       ref.position = Point()
@@ -125,23 +118,12 @@ def main():
 
   uav = UAVTest()
 
-  input('teste1\n')
-
-  input('passo 1')
+  input()
   uav.goto_start_point_v2()
-  input('passo 2')
+  input()
   uav.create_trajectory()
-  input('passo 3')
   uav.start_trajectory()
 
-  input('\nteste2\n')
-
-  input('passo 1')
-  uav.create_trajectory()
-  input('passo 2')
-  uav.goto_start_point_v1()
-  input('passo 3')
-  uav.start_trajectory()
 
 
 if __name__ == '__main__':

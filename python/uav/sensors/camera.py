@@ -42,6 +42,7 @@ class uavCamera:
         self.i_see_fire: bool = False
         self.max_fire_area = None
 
+        self.seq = 0
         
 
     # img(ROS) -> img(OpenCV)
@@ -49,9 +50,14 @@ class uavCamera:
         
         # msg.Image -> 'cv2.Image'
         cv_img_msg = self.bridge.imgmsg_to_cv2(img_msg, 'passthrough')
-        #  cv_img_msg = np.asarray(self.bridge.imgmsg_to_cv2(img_msg, 'passthrough'))
+
         #Color correction
         self.cv_img = cv2.cvtColor(cv_img_msg, cv2.COLOR_BGR2RGB)
+
+        #cv2.imwrite(f'images/img{img_msg.header.seq}.jpg', self.cv_img)
+
+        #self.color_detection(img_src = self.cv_img)
+        #self.max_fire_area = self.find_centroid()
 
     # Subscribe and image frame update
     def update_img_cv(self) -> None:
@@ -119,7 +125,7 @@ class uavCamera:
         cv2.imshow("uav View", self.cv_img)
         if all:
             cv2.imshow("uav Mask Red", self.cv_img_masked_red)
-            cv2.imshow("uav Mask Yellow", self.cv_img_masked_yellow)
+            #cv2.imshow("uav Mask Yellow", self.cv_img_masked_yellow)
 
         k = cv2.waitKey(33)
         
@@ -130,3 +136,6 @@ class uavCamera:
         self.color_detection(img_src = self.cv_img)
         self.max_fire_area = self.find_centroid()
         
+        #cv2.imwrite(f'images/img{self.seq}.jpg', self.cv_img)
+        #self.seq += 1
+

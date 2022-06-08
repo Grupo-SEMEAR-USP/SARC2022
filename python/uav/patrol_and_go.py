@@ -27,6 +27,8 @@ def create_patrol_route(initialPos: Point, altitude: float, mapSize: tuple, step
         if i % 2: 
             path.append(pos0)
     
+    #path = [[0.0, 0.0, altitude/2, 0.0], [0.0, 0.0, altitude, 0.0]]
+
     return path
     
 
@@ -37,10 +39,10 @@ def main():
     while not myUav.position:
         myUav.update_state()
 
-    trajectory = create_patrol_route(myUav.position, 30.0, (100, 100), 8)
+    trajectory = create_patrol_route(myUav.position, 50.0, (100, 100), 8)
 
     myUav.trajectory_generation(trajectory, 1)
-    #myUav.start_trajectory()
+    myUav.start_trajectory()
 
     while not rospy.is_shutdown():
         myUav.update_state()
