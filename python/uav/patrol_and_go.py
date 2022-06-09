@@ -42,16 +42,16 @@ def main():
     trajectory = create_patrol_route(myUav.position, 50.0, (100, 100), 8)
 
     myUav.trajectory_generation(trajectory, 1)
-    myUav.start_trajectory()
+    #myUav.start_trajectory()
 
     while not rospy.is_shutdown():
         myUav.update_state()
 
         #print(f'Vi fogo: {myUav.did_i_detect_fire}')
-        if myUav.did_i_detect_fire:
-            cv2.imwrite('images/im.jpg', myUav.i_did_detect_fire['fire_img'][0])
-            myUav.stop_trajectory()
-            break
+        #if myUav.did_i_detect_fire:
+            #cv2.imwrite('images/im.jpg', myUav.i_did_detect_fire['fire_img'][0])
+            #myUav.stop_trajectory()
+            #break
 
 
 if __name__ == '__main__':
