@@ -85,7 +85,7 @@ class UAV:
 
 
         rospy.init_node(name = node_name)
-        self.configure()
+        # self.configure()
 
         self.t0 = rospy.get_rostime()
         self.time_now = rospy.get_rostime()
@@ -93,7 +93,7 @@ class UAV:
         #Store auxiliary variables in 'aux_vars_dict'
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
 
-        rospy.loginfo(f'UAV{self.node_name} INIT SUCCEEDED')
+        rospy.loginfo(f'UAV{self.uav_id} INIT SUCCEEDED')
 
     def configure(self):
         
