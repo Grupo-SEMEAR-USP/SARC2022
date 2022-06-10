@@ -142,7 +142,7 @@ class UAV:
         #     print('Service call failed: %s', e)
 
         
-
+    
     def fire_detection_mapping( self,
                                 fire_pixel_area: float,
                                 min_area_threshold: float,
@@ -201,7 +201,7 @@ class UAV:
 
             #! vec.append() (built in) é muito mais rápido que np.append(array, obj)
         '''
-
+        
         now_secs = self.time_now.secs
         time_passed = now_secs - self.t0.secs
         epoch = int(1/rate_hz)

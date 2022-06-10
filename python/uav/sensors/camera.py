@@ -118,9 +118,6 @@ class uavCamera:
         
 
     def update_state(self) -> None:        
-        self.sub = rospy.Subscriber(name = self.subscriber_name,
-                                        data_class = Image,
-                                        callback = self.img_msg_to_cv)
         
         self.color_detection(img_src = self.cv_img)
         self.find_centroid()
