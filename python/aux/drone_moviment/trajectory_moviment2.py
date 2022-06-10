@@ -10,12 +10,14 @@ from std_srvs.srv import Trigger
 from mrs_msgs.srv import PathSrv
 
 class UAVTest:
-  def __init__(self) -> None:
-    self.points_1 = [[0.0, 0.0, 30.0, 0.0], [0.0, 30.0, 30.0, 0.0], [30.0, 30.0, 30.0, 0.0], [30.0, 0.0, 30.0, 0.0]]
-    self.points_2 = [[(5*np.cos(t))/(1+np.sin(t)**2), (5*np.sin(t)*np.cos(t))/(1+np.sin(t)**2), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=30))]
-    self.points_3 = [[5*np.cos(t), 5*np.sin(t), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=30))]
+  def __init__(self, uav_name: str) -> None:
 
-    self.uav_name = os.environ.get('UAV_NAME')
+    self.uav_name = uav_name
+
+    if self.uav_name == 'uav1':
+      self.points = [[5*np.cos(t), 5*np.sin(t), 5.0, 0.0] for t in list(np.linspace(0, 2*np.pi, num=30))]
+    else:
+      self.points = [[5*np.cos(t), 5*np.sin(t), 5.0, 0.0] for t in list(np.linspace(np.pi, 3*np.pi, num=30))]
 
     rospy.init_node('uav_moviment', anonymous=True)
 
@@ -51,7 +53,7 @@ class UAVTest:
     msg.relax_heading = False
 
     msg.points = []
-    point = self.points_2[0]
+    point = self.points[0]
 
     ref = Reference()
 
@@ -68,7 +70,7 @@ class UAVTest:
 
     res = self.planner(msg)
 
-    print(f'Goto Start Position\nSuccess: {res.success}\nMessage: {res.message}')
+    print(f'Goto Start Position -> Success: {res.success} - Message: {res.message}')
 
   def create_trajectory(self) -> None:
     msg = Path()
@@ -90,7 +92,7 @@ class UAVTest:
     msg.relax_heading = False
 
     msg.points = []
-    for point in self.points_3:
+    for point in self.points:
       ref = Reference()
 
       ref.position = Point()
@@ -106,23 +108,28 @@ class UAVTest:
 
     res = self.planner(msg)
 
-    print(f'Trajectory Generation\nSuccess: {res.success}\nMessage: {res.message}')
+    print(f'Trajectory Generation -> Success: {res.success} - Message: {res.message}')
 
   def start_trajectory(self) -> None:
     res = self.start_mov()
 
-    print(f'Trajectory Start\nSuccess: {res.success}\nMessage: {res.message}')
+    print(f'Trajectory Start -> Success: {res.success} - Message: {res.message}')
 
 
 def main():
 
-  uav = UAVTest()
+  uav1 = UAVTest('uav1')
+  uav2 = UAVTest('uav2')
 
-  input()
-  uav.goto_start_point_v2()
-  input()
-  uav.create_trajectory()
-  uav.start_trajectory()
+  input('a')
+  uav1.goto_start_point_v2()
+  uav2.goto_start_point_v2()
+  input('b')
+  uav1.create_trajectory()
+  uav2.create_trajectory()
+  input('c')
+  uav1.start_trajectory()
+  uav2.start_trajectory()
 
 
 

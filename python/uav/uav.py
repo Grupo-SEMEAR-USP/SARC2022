@@ -12,13 +12,12 @@ from sensors.gps import uavGPS
 
 from geometry_msgs.msg import Point
 #Importing mrs_services 
-from mrs_msgs.srv import    _Vec4, _ReferenceStampedSrv,    \
-                            _VelocityReferenceStampedSrv,   \
-                            _TrajectoryReferenceSrv,        \
-                             _PathSrv
+from mrs_msgs.srv import    ReferenceStampedSrv,    \
+                            TrajectoryReferenceSrv,        \
+                            PathSrv
 
 #from mrs_msgs.msg import _ReferenceStamped
-from std_srvs.srv import _Trigger
+from std_srvs.srv import Trigger
 from std_msgs.msg import Header
 from mrs_msgs.msg import Path, Reference
 
@@ -129,14 +128,14 @@ class UAV:
         # self.land(f'{self.node_name}/uav_manager/land', _Trigger)
         # self.land_there(f'{self.node_name}/uav_manager/land_there', _ReferenceStamped)
         
-        self.fly_to_xyz_in_a_given_frame = rospy.ServiceProxy(f'{self.node_name}/control_manager/reference', _ReferenceStampedSrv.ReferenceStampedSrv)
-        self.fly_along_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/trajectory_reference', _TrajectoryReferenceSrv.TrajectoryReferenceSrv)
+        self.fly_to_xyz_in_a_given_frame = rospy.ServiceProxy(f'{self.node_name}/control_manager/reference', ReferenceStampedSrv)
+        self.fly_along_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/trajectory_reference', TrajectoryReferenceSrv)
 
-        self.fly_to_1st_xyz_in_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/goto_trajectory_start', _Trigger.Trigger)
-        self.start_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/start_trajectory_tracking', _Trigger.Trigger)
-        self.stop_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/stop_trajectory_tracking', _Trigger.Trigger)
-        self.resume_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/resume_trajectory_tracking', _Trigger.Trigger)
-        self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', _PathSrv.PathSrv)
+        self.fly_to_1st_xyz_in_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/goto_trajectory_start', Trigger)
+        self.start_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/start_trajectory_tracking', Trigger)
+        self.stop_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/stop_trajectory_tracking', Trigger)
+        self.resume_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/resume_trajectory_tracking', Trigger)
+        self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', PathSrv)
         
         # except rospy.ServiceException as e:
         #     print('Service call failed: %s', e)
@@ -150,13 +149,15 @@ class UAV:
         ''' 
             If an uav detected fire, save its state (the image, fire area, position, time, etc)
         '''
-        self.did_i_detect_fire = (fire_pixel_area > min_area_threshold)
+        self.did_i_detect_fire = fire_pixel_area and (fire_pixel_area > min_area_threshold)
 
-        if self.did_i_detect_fire is True:
+        if self.did_i_detect_fire:
 
             self.i_did_detect_fire['fire_img'].append(img_to_save)
             self.i_did_detect_fire['fire_area'].append(fire_pixel_area)
-            self.i_did_detect_fire['position'].append(self.position)
+            self.i_did_detect_fire['x'].append(self.pos_x)
+            self.i_did_detect_fire['y'].append(self.pos_y)
+            self.i_did_detect_fire['z'].append(self.pos_z)
             self.i_did_detect_fire['time'].append(rospy.get_rostime())
         
         else:
@@ -210,7 +211,6 @@ class UAV:
             
             append_here.append(data)
             self.aux_vars_dict['aux_var1'] = now_secs
-        
     
     def update_state(self) -> None:
         
@@ -223,20 +223,22 @@ class UAV:
         self.pos_x = self.position.x
         self.pos_y = self.position.y
         self.pos_z = self.position.z
+
+        self.camera.display_img()
         
 
         #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 
-        #detectado. Esta area é input da funcao fire_detection_tracker()
-        self.fire_detection_mapping(fire_pixel_area = -1,
+        #detectado. Esta area é input da funcao fire_detection_tracker(
+        self.fire_detection_mapping(fire_pixel_area = self.camera.max_fire_area,
                                     min_area_threshold = 0,
-                                    img_to_save = None)
+                                    img_to_save = self.camera.cv_img)
 
         self.save_xyz_position(rate_hz = 1.0)
        
                 
-        rospy.loginfo("uav position:\n%s", self.position)
+        #rospy.loginfo("uav position:\n%s", self.position)
         
-    def trajectory_generation(self, points, id) -> None:
+    def trajectory_generation(self, points: list, id: int) -> None:
          
         # Defining the services parameters
         
@@ -247,7 +249,7 @@ class UAV:
         msg_trajectory.header.stamp = rospy.get_rostime()
         msg_trajectory.header.frame_id = 'gps_origin'
 
-        msg_trajectory.input_id = 1
+        msg_trajectory.input_id = id
 
         msg_trajectory.use_heading = True
         msg_trajectory.fly_now = False
@@ -270,7 +272,9 @@ class UAV:
 
             msg_trajectory.points.append(ref)
 
-        path = self.path(msg_trajectory)
+        res = self.path(msg_trajectory)
+
+        print(f'Trajectory Generation\nSuccess: {res.success}\nMessage: {res.message}')
 
         
     def start_trajectory(self) -> None:
