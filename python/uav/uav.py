@@ -14,12 +14,13 @@ from geometry_msgs.msg import Point
 #Importing mrs_services 
 from mrs_msgs.srv import    ReferenceStampedSrv,    \
                             TrajectoryReferenceSrv,        \
-                            PathSrv
+                            PathSrv,                \
+                            VelocityReferenceStampedSrv
 
 #from mrs_msgs.msg import _ReferenceStamped
 from std_srvs.srv import Trigger
 from std_msgs.msg import Header
-from mrs_msgs.msg import Path, Reference
+from mrs_msgs.msg import Path, Reference, VelocityReferenceStamped, VelocityReference
 
 
 
@@ -113,15 +114,17 @@ class UAV:
         
         rospy.wait_for_service(f'{self.node_name}/control_manager/reference', timeout = None)
         rospy.wait_for_service(f'{self.node_name}/control_manager/trajectory_reference', timeout = None)
-
+        rospy.wait_for_service(f'{self.node_name}/control_manager/velocity_reference', timeout = None)
+        
         rospy.wait_for_service(f'{self.node_name}/control_manager/goto_trajectory_start', timeout = None)
         rospy.wait_for_service(f'{self.node_name}/control_manager/start_trajectory_tracking', timeout = None)
         rospy.wait_for_service(f'{self.node_name}/control_manager/stop_trajectory_tracking', timeout = None)
         rospy.wait_for_service(f'{self.node_name}/control_manager/resume_trajectory_tracking', timeout = None)
 
         rospy.wait_for_service(f'{self.node_name}/trajectory_generation/path', timeout = None)
-
         
+        rospy.wait_for_service(f'{self.node_name}/uav_manager/land', timeout = None)
+        rospy.wait_for_service(f'{self.node_name}/uav_manager/land_there', timeout = None)
 
         # try:
         # self.takeoff(f'{self.node_name}/uav_manager/takeoff', _Trigger)
@@ -130,12 +133,16 @@ class UAV:
         
         self.fly_to_xyz_in_a_given_frame = rospy.ServiceProxy(f'{self.node_name}/control_manager/reference', ReferenceStampedSrv)
         self.fly_along_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/trajectory_reference', TrajectoryReferenceSrv)
+        self.fly_with_velocity = rospy.ServiceProxy(f'{self.node_name}/control_manager/velocity_reference', VelocityReferenceStampedSrv)
 
         self.fly_to_1st_xyz_in_trajectory = rospy.ServiceProxy(f'{self.node_name}/control_manager/goto_trajectory_start', Trigger)
         self.start_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/start_trajectory_tracking', Trigger)
         self.stop_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/stop_trajectory_tracking', Trigger)
         self.resume_trajectory_tracking = rospy.ServiceProxy(f'{self.node_name}/control_manager/resume_trajectory_tracking', Trigger)
         self.path = rospy.ServiceProxy(f'{self.node_name}/trajectory_generation/path', PathSrv)
+        
+        self.land_here = rospy.ServiceProxy(f'{self.node_name}/uav_manager/land', Trigger)
+        self.land_there = rospy.ServiceProxy(f'{self.node_name}/uav_manager/land_there', ReferenceStampedSrv)
         
         # except rospy.ServiceException as e:
         #     print('Service call failed: %s', e)
@@ -303,6 +310,51 @@ class UAV:
 
         self.fly_to_xyz_in_a_given_frame(msg_point_header, msg_point_reference)
 
+    def fly_velocity(self, velocity, altitude) -> None:
+
+        #velocity should be a float x,y,z vector
+        
+        msg_velocity = VelocityReferenceStamped()
+        msg_velocity.header = Header()
+        msg_velocity.reference = VelocityReference()
+
+        msg_velocity.header.seq = 0
+        msg_velocity.header.stamp = rospy.get_rostime()
+        msg_velocity.header.frame_id = 'gps_origin'
+
+        msg_velocity.reference.altitude = altitude
+        msg_velocity.reference.heading = 0.0
+        msg_velocity.reference.heading_rate = 0.0
+        msg_velocity.reference.use_altitude = True
+        msg_velocity.reference.use_heading = False
+        msg_velocity.reference.use_heading_rate = False
+
+        msg_velocity.reference.velocity = velocity
+        
+        res = self.fly_with_velocity(msg_velocity)
+
+    def land_now(self) -> None:
+        self.land_here()
+
+    def land_position(self, position) -> None:
+
+        msg_point_header = Header()
+        msg_point_reference = Reference()
+
+        msg_point_header.seq = 0
+        msg_point_header.stamp = rospy.get_rostime()
+        msg_point_header.frame_id = 'gps_origin'
+
+        msg_point_reference.position = Point()
+        msg_point_reference.position.x = position[0]
+        msg_point_reference.position.y = position[1]
+        msg_point_reference.heading = position [2]
+
+        self.land_there(msg_point_header, msg_point_reference)
+        
+        
+        
+        
 #uav de test
 # meu_uav = UAV(node_name = 'meu_uav', uav_id = '01')
 
