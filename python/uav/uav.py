@@ -249,7 +249,7 @@ class UAV:
         msg_trajectory.header.stamp = rospy.get_rostime()
         msg_trajectory.header.frame_id = 'gps_origin'
 
-        msg_trajectory.input_id = id
+        msg_trajectory.input_id = id #!Trocar o nome dessa entrada (id)
 
         msg_trajectory.use_heading = True
         msg_trajectory.fly_now = False

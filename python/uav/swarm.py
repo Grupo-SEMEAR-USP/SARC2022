@@ -23,7 +23,7 @@ class Swarm:
         for uav in uavs:
             uav.configure()
         
-        self.who_detected_fire: list = []        
+        self.who_detected_fire: list = []
 
         rospy.init_node(name = node_name)
         self.t0 = rospy.get_rostime()

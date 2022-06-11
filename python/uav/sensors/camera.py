@@ -26,6 +26,14 @@ class uavCamera:
         
 
         self.img_width, self.img_height = img_width, img_height
+        
+        #https://mayavan95.medium.com/3d-position-estimation-of-a-known-object-using-a-single-camera-7a82b37b326b
+        self.focus_x = 0
+        self.focus_y = 0
+        self.x_center = 0
+        self.y_center = 0
+        self.intrinsic_matrix = None
+        
         self.node_name = node_name
         self.subscriber_name = subscriber_name
         self.bridge = CvBridge()        
@@ -118,8 +126,36 @@ class uavCamera:
 
         return max_area    
 
+    @staticmethod
+    def calculate_real_position(    x_pixel: np.array,
+                                    y_pixel: np.array,
+                                    z_gps: float,
+                                    fx, fy) -> np.array:
+
+        '''
+            #TODO: 
+                Implementar uma funcao que recebe a posicao da odometria do
+                drone (pos_x, pos_y) para passar X e Y para as coordenadas
+                do mapa ao inves da do drone.
 
 
+            https://mayavan95.medium.com/3d-position-estimation
+            -of-a-known-object-using-a-single-camera-7a82b37b326b
+
+            X: x Position in real world(**) of pixel located at (x_pixel, y_pixel)
+            Y: y Position in real world of pixel located at (x_pixel, y_pixel)
+            Z: height of the uav
+
+            #* (**): em relacao ao referencial do drone.
+        ''' 
+
+        cx = int(0.5*self.img_width)
+        cy = int(0.5*self.img_height)
+
+        Z =  z_gps #altura em metros
+        X = Z * (x_pixel - cx)/fx
+        Y = Z * (y_pixel - cy)/fy
+        return X, Y
 
     def display_img(self, all: bool = False):
         cv2.imshow("uav View", self.cv_img)
