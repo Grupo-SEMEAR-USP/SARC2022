@@ -47,7 +47,7 @@ class Swarm:
         if spawn:
             self.spawn_drones()
 
-        self.uavs = (UAV(i, start_init=False) for i in range(1, swarm_size+1))
+        self.uavs = tuple(UAV(i, start_init=False) for i in range(1, swarm_size+1))
         
         for uav in self.uavs:
             uav.configure()
@@ -55,7 +55,17 @@ class Swarm:
 
         rospy.loginfo("UAVs Configured")
 
-        rospy.sleep(15)
+        rospy.sleep(1)
+        rospy.loginfo("5...")
+        rospy.sleep(0.5)
+        rospy.loginfo("4...")
+        rospy.sleep(0.5)
+        rospy.loginfo("3...")
+        rospy.sleep(0.5)
+        rospy.loginfo("2...")
+        rospy.sleep(0.5)
+        rospy.loginfo("1...")
+        rospy.sleep(0.5)
 
         rospy.loginfo("Going to Start Formation")
 
@@ -97,7 +107,7 @@ class Swarm:
         dAngle = np.pi * 2 / (self.swarm_size - 1)
         angle = 0
 
-        for i in range(self.swarm_size):
+        for i in range(1, self.swarm_size+1):
 
             if i == self.center_drone:
                 x = y = 0
@@ -144,8 +154,19 @@ class Swarm:
 
     def goto_formation(self) -> None:
 
+        failed_spawns = []
+
         for uav, position in zip(self.uavs, self.formation):
-            uav.go_to_point(position)
+            res = uav.go_to_point(position)
+
+            if not res.success:
+                failed_spawns.append(uav.uav_id)
+
+        if not failed_spawns:
+            rospy.loginfo(f'All UAVs sent to position')
+        else:
+            uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
+            rospy.loginfo(f'UAVs {uavs} did not sent to position')
 
     def is_on_formation(self) -> bool:
 
@@ -165,6 +186,8 @@ class Swarm:
         dAngle = np.pi * 2 / (self.swarm_size - 1)
         angle = 0
 
+        failed_spawns = []
+
         for i in range(1, self.swarm_size+1):
             if i == self.center_drone:
                 x = y = 0
@@ -176,5 +199,11 @@ class Swarm:
 
             res = self.spawner(f"{i} {uav_type} --enable-rangefinder --enable-ground-truth --{camera} --pos {x} {y} 0.5 0.0")
 
-            #print(f'Uav{i} Spawn ({x} , {y}) = {res.success} => {res.message}')
-            rospy.loginfo(f'Uav{i} Spawn = {res.success} => {res.message}')
+            if not res.success:
+                failed_spawns.append(i)
+
+        if not failed_spawns:
+            rospy.loginfo(f'All UAVs spawns succeeded')
+        else:
+            uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
+            rospy.loginfo(f'UAVs {uavs} not spawned successfully')

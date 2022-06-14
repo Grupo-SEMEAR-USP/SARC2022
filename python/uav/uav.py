@@ -22,6 +22,7 @@ from std_msgs.msg import Header
 
 # Importing Ros Services
 from mrs_msgs.srv import ReferenceStampedSrv, TrajectoryReferenceSrv, PathSrv, VelocityReferenceStampedSrv, String
+from mrs_msgs.srv import ReferenceStampedSrvResponse
 from std_srvs.srv import Trigger
 
 
@@ -96,6 +97,8 @@ class UAV:
 
         self.t0 = rospy.get_rostime()
         self.time_now = rospy.get_rostime()
+
+        self.goto_point_seq = 0
 
         #Store auxiliary variables in 'aux_vars_dict'
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
@@ -307,12 +310,12 @@ class UAV:
 
         self.stop_trajectory_tracking()
 
-    def go_to_point(self, position) -> None:
+    def go_to_point(self, position: list) -> ReferenceStampedSrvResponse:
         
         msg_point_header = Header()
         msg_point_reference = Reference()
 
-        msg_point_header.seq = 0
+        msg_point_header.seq = self.goto_point_seq
         msg_point_header.stamp = rospy.get_rostime()
         msg_point_header.frame_id = 'gps_origin'
 
@@ -322,7 +325,9 @@ class UAV:
         msg_point_reference.position.z = position[2]
         msg_point_reference.heading = position [3]
 
-        self.fly_to_xyz_in_a_given_frame(msg_point_header, msg_point_reference)
+        self.goto_point_seq += 1
+
+        return self.fly_to_xyz_in_a_given_frame(msg_point_header, msg_point_reference)
 
     def fly_velocity(self, velocity, altitude) -> None:
 
