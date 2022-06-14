@@ -27,13 +27,14 @@ class uavCamera:
 
         self.img_width, self.img_height = img_width, img_height
         
-        #https://mayavan95.medium.com/3d-position-estimation-of-a-known-object-using-a-single-camera-7a82b37b326b
-        self.focus_x = 0
-        self.focus_y = 0
-        self.x_center = 0
-        self.y_center = 0
-        self.intrinsic_matrix = None
-        
+        #https://mayavan95.medium.com/3d-position-estimation-of-a
+        #-known-object-using-a-single-camera-7a82b37b326b
+        #TODO: pegar os valores intrisics no arquivo .xacro da camera
+        self.focus_x = 277
+        self.focus_y = 277
+        self.x_center = int(0.5 * self.img_width)
+        self.y_center = int(0.5 * self.img_height)
+                
         self.node_name = node_name
         self.subscriber_name = subscriber_name
         self.bridge = CvBridge()        
@@ -126,28 +127,56 @@ class uavCamera:
 
         return max_area    
 
+
     @staticmethod
-    def calculate_real_position(    x_pixel: np.array,
+    def bounding_box_vertices(img_mask: np.array) -> tuple:
+   
+        '''
+            Bounding box of detected region (ex: red area)
+        '''
+        xys_pts = np.nonzero(img_mask)
+        x_of_interest = xys_pts[1]
+        y_of_interest = xys_pts[0]
+        
+        xmin, xmax = min(x_of_interest), max(x_of_interest)
+        ymin, ymax = min(y_of_interest), max(y_of_interest)
+        
+        ##Vertices/corners:
+        # up_left, up_right = (xmin, ymin), (xmax, ymin)
+        # down_left, down_right = (xmin, ymax), (xmax, ymax)
+
+        ##Draw the rectangle 
+        # img_temp = np.copy(img_mask)
+        # cv2.rectangle(img_temp, (xmin, ymin), (xmax, ymax), (255, 0, 0), 1)
+        
+        return xmin, ymin, xmax, ymax
+
+    
+    
+    def estimate_3d_coordinates(    self,
+                                    x_pixel: np.array,
                                     y_pixel: np.array,
-                                    z_gps: float,
-                                    fx, fy) -> np.array:
+                                    z_gps: float) -> np.array:
 
         '''
             #TODO: 
-                Implementar uma funcao que recebe a posicao da odometria do
+                1. Implementar uma funcao que recebe a posicao da odometria do
                 drone (pos_x, pos_y) para passar X e Y para as coordenadas
                 do mapa ao inves da do drone.
+                2. Deixar o nome dessa funcao mais intuitivo
 
 
             https://mayavan95.medium.com/3d-position-estimation
             -of-a-known-object-using-a-single-camera-7a82b37b326b
 
-            X: x Position in real world(**) of pixel located at (x_pixel, y_pixel)
-            Y: y Position in real world of pixel located at (x_pixel, y_pixel)
+            X: x Position in real world(**) of a pixel located at (x_pixel, y_pixel)
+            Y: y Position in real world of a pixel located at (x_pixel, y_pixel)
             Z: height of the uav
 
             #* (**): em relacao ao referencial do drone.
         ''' 
+        fx = self.focus_x
+        fy = self.focus_y
 
         cx = int(0.5*self.img_width)
         cy = int(0.5*self.img_height)
@@ -156,6 +185,7 @@ class uavCamera:
         X = Z * (x_pixel - cx)/fx
         Y = Z * (y_pixel - cy)/fy
         return X, Y
+
 
     def display_img(self, all: bool = False):
         cv2.imshow("uav View", self.cv_img)

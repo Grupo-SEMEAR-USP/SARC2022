@@ -33,10 +33,10 @@ from mrs_msgs.msg import Path, Reference, VelocityReferenceStamped, VelocityRefe
 
 #TODO:
 '''
-    1. Adicionar atributos importantes
-        - posição do uav
-        - i_see_fire = true/false
-        - etc
+    #! Redistribuir as funcoes entre os arquivos uav.py e sensors.
+    -> Funcoes relacionadas a posicao e trajetoria em uav.GPS
+    -> funcoes relacionadas a imagem em uav.Camera
+
 '''
 
 class UAV:
@@ -55,7 +55,9 @@ class UAV:
         self.gps = uavGPS(  node_name = 'odom_msgs',
                             subscriber_name = '/uav1/odometry/odom_gps')
         
-        
+        #TODO: add uma funcao que estabeleca os modos de voo
+        self.current_flight_mode = None
+
         self.position = None
         self.pos_x = None
         self.pos_y = None
@@ -86,6 +88,7 @@ class UAV:
 
 
         rospy.init_node(name = node_name)
+        ##Add self.configure na main do script ao inves de coloca-lo e __init__
         # self.configure()
 
         self.t0 = rospy.get_rostime()
@@ -153,6 +156,8 @@ class UAV:
                                 fire_pixel_area: float,
                                 min_area_threshold: float,
                                 img_to_save: np.array):
+
+        #! Essa funcao vai passar para a classe uavGPS                        
         ''' 
             If an uav detected fire, save its state (the image, fire area, position, time, etc)
         '''
@@ -172,6 +177,7 @@ class UAV:
 
     def save_xyz_position(self, rate_hz: float = 0.5) -> None:
         
+        #! Essa funcao vai passar para a classe uavGPS
         '''
 
             Salva data em append_here a cada 1/rate_hz secs.
@@ -226,25 +232,27 @@ class UAV:
         self.camera.update_state()
         self.gps.update_state()
 
-        self.position = self.gps.odometry_msg.pose.pose.position
-        self.pos_x = self.position.x
-        self.pos_y = self.position.y
-        self.pos_z = self.position.z
+        self.position = self.gps.position
+        self.pos_x = self.gps.pos_x
+        self.pos_y = self.gps.pos_y
+        self.pos_z = self.gps.pos_z
 
         self.camera.display_img()
         
 
         #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 
         #detectado. Esta area é input da funcao fire_detection_tracker(
-        self.fire_detection_mapping(fire_pixel_area = self.camera.max_fire_area,
-                                    min_area_threshold = 0,
-                                    img_to_save = self.camera.cv_img)
+        self.did_i_detect_fire = self.gps.fire_detection_mapping(   fire_pixel_area = self.camera.max_fire_area,
+                                                                    min_area_threshold = 0,
+                                                                    img_to_save = self.camera.cv_img)
 
-        self.save_xyz_position(rate_hz = 1.0)
+        self.gps.save_xyz_position(rate_hz = 1.0)
        
                 
         #rospy.loginfo("uav position:\n%s", self.position)
-        
+    
+    #TODO: Verificar a possibilidade de passar as funcoes de trajetoria 
+    #para a classe uavGPS
     def trajectory_generation(self, points: list, id: int) -> None:
          
         # Defining the services parameters

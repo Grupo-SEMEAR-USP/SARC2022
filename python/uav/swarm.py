@@ -28,4 +28,3 @@ class Swarm:
         rospy.init_node(name = node_name)
         self.t0 = rospy.get_rostime()
         self.time_now = rospy.get_rostime()
-
