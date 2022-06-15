@@ -287,7 +287,7 @@ class Swarm:
         for uav, position in zip(self.uavs, self.des_formation_coords):
             if not uav.is_on_point(position): 
                 return False
-            return True
+        return True
 
     def spawn_drones(self) -> None:
         uav_type = os.environ.get('UAV_TYPE')
