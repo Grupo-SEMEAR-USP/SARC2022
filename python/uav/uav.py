@@ -377,23 +377,5 @@ class UAV:
         z = position[2]
 
         return is_clonse_enough(self.pos_x, x) and is_clonse_enough(self.pos_y, y) and is_clonse_enough(self.pos_z, z)
-        
-        
-#uav de test
-# meu_uav = UAV(node_name = 'meu_uav', uav_id = '01')
-
-# if __name__ == '__main__':
-    
-
-    
-#     while not rospy.is_shutdown():
-#         meu_uav.update_state()
-        
-
-    #     meu_uav.camera.display_img()
-    #     k = cv2.waitKey(1) & 0xff
-
-    
-    # cv2.destroyAllWindows()
-        
+     
 
