@@ -51,6 +51,8 @@ class uavCamera:
         self.i_see_fire: bool = False
         self.max_fire_area = None
 
+        self.countours = None
+
         self.seq = 0
         
 
@@ -110,10 +112,10 @@ class uavCamera:
     def find_centroid(self) -> float or None:
         max_area = None
         
-        countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours( self.mask_red, countours, 0, (0,255,0), 3)
+        self.countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours( self.mask_red, self.countours, 0, (0,255,0), 3)
         
-        for countour in countours: 
+        for countour in self.countours: 
             self.red_area = cv2.contourArea(countour)
             #print(self.area)
             if self.red_area>10000: 
@@ -127,6 +129,14 @@ class uavCamera:
 
         return max_area    
 
+    def find_enclosing_circle(self) -> None:
+
+        (x, y), radius = cv2.minEnclosingCircle(self.countours)
+
+        center = (int(x), int(y))
+        radius = int(radius)
+
+        cv2.circle(self.cv_img, center, radius, (0, 0, 0), 2)
 
     @staticmethod
     def bounding_box_vertices(img_mask: np.array) -> tuple:

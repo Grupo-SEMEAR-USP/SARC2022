@@ -22,8 +22,9 @@ from std_msgs.msg import Header
 
 # Importing Ros Services
 from mrs_msgs.srv import ReferenceStampedSrv, TrajectoryReferenceSrv, PathSrv, VelocityReferenceStampedSrv, String
-from mrs_msgs.srv import ReferenceStampedSrvResponse
+from mrs_msgs.srv import ReferenceStampedSrvResponse, PathSrvResponse
 from std_srvs.srv import Trigger
+from std_srvs.srv import TriggerResponse
 
 
 
@@ -65,6 +66,8 @@ class UAV:
         self.pos_x = None
         self.pos_y = None
         self.pos_z = None
+
+        self.min_area_threshold = 10000
         
         self.previous_positions: dict = {   'time': [],
                                             'x': [],
@@ -159,7 +162,6 @@ class UAV:
         while not res.success:
             res = self.change_estimator("BARO")
 
-        
     
     def fire_detection_mapping( self,
                                 fire_pixel_area: float,
@@ -246,23 +248,27 @@ class UAV:
         self.pos_y = self.gps.pos_y
         self.pos_z = self.gps.pos_z
 
-        self.camera.display_img()
+        if self.uav_id == 1:
+            self.camera.display_img()
         
 
         #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 
         #detectado. Esta area é input da funcao fire_detection_tracker(
         self.did_i_detect_fire = self.gps.fire_detection_mapping(   fire_pixel_area = self.camera.max_fire_area,
-                                                                    min_area_threshold = 0,
+                                                                    min_area_threshold = self.min_area_threshold,
                                                                     img_to_save = self.camera.cv_img)
 
         self.gps.save_xyz_position(rate_hz = 1.0)
        
                 
         #rospy.loginfo("uav position:\n%s", self.position)
+
+    def check_enclosing_circle(self) -> bool:
+        self.camera.find_enclosing_circle()
     
     #TODO: Verificar a possibilidade de passar as funcoes de trajetoria 
     #para a classe uavGPS
-    def trajectory_generation(self, points: list, id: int) -> None:
+    def trajectory_generation(self, points: list, id: int) -> PathSrvResponse:
          
         # Defining the services parameters
         
@@ -296,19 +302,21 @@ class UAV:
 
             msg_trajectory.points.append(ref)
 
-        res = self.path(msg_trajectory)
+        #res = self.path(msg_trajectory)
 
-        print(f'Trajectory Generation\nSuccess: {res.success}\nMessage: {res.message}')
+        #print(f'Trajectory Generation\nSuccess: {res.success}\nMessage: {res.message}')
+
+        return self.path(msg_trajectory)
 
         
-    def start_trajectory(self) -> None:
+    def start_trajectory(self) -> TriggerResponse:
 
         self.fly_to_1st_xyz_in_trajectory()
-        self.start_trajectory_tracking()
+        return self.start_trajectory_tracking()
 
-    def stop_trajectory(self) -> None:
+    def stop_trajectory(self) -> TriggerResponse:
 
-        self.stop_trajectory_tracking()
+        return self.stop_trajectory_tracking()
 
     def go_to_point(self, position: list) -> ReferenceStampedSrvResponse:
         

@@ -4,7 +4,7 @@ import rospy
 
 def main():
     
-    swarm = Swarm(9, 'swarm_node', spawn=True)
+    swarm = Swarm(1, 'swarm_node', spawn=True)
 
     if swarm.uavs:
         while not rospy.is_shutdown():
