@@ -38,8 +38,8 @@ class uavGPS:
         #store random data in 'aux_vars_dict' if needed
         self.aux_vars_dict: dict = {'var1': np.pi}
         
-        # self.t0 = rospy.get_rostime()
-        # self.time_now = rospy.get_rostime()
+        self.t0 = rospy.get_rostime()
+        self.time_now = rospy.get_rostime()
     
     
     def read_odometry_msgs(self, odom_msg: Odometry) -> None:
@@ -140,16 +140,17 @@ class uavGPS:
         time_passed = now_secs - self.t0.secs
         epoch = int(1/rate_hz)
 
-        if ((time_passed % epoch == 0) and now_secs != self.aux_vars_dict['aux_var1']):            
+        if ((time_passed % epoch == 0) and now_secs != self.aux_vars_dict['var1']):            
             
             self.previous_positions['x'].append(self.pos_x)
             self.previous_positions['y'].append(self.pos_y)
             self.previous_positions['z'].append(self.pos_z)
             self.previous_positions['time'].append(time_passed)
 
-            self.aux_vars_dict['aux_var1'] = now_secs
+            self.aux_vars_dict['var1'] = now_secs
 
     def update_state(self) -> None:
-        pass
+
+        self.time_now = rospy.get_rostime()
     
     
