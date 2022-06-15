@@ -61,9 +61,6 @@ class Swarm:
 
         rospy.init_node(name = node_name)
       
-        # Talvez de para tirar essa parte do código
-        self.op_num = 0
-        self.formation_list = {}
 
 
         if center_drone < 1 or center_drone > swarm_size:
@@ -348,8 +345,6 @@ class Swarm:
 
         # Update formation name
         self.des_formation_name = shape
-        #self.formation_list['formation {}'.format(self.op_num)] = {'name':self.des_formation_name, 'coord':self.des_formation_coords}
-        #self.op_num += 1
 
     def applyFormation(self) -> None:
         
@@ -404,10 +399,7 @@ class Swarm:
         self.des_formation_pose = np.array([self.des_formation_pose[0]+tx, self.des_formation_pose[1]+ty, self.des_formation_pose[2]+tz])
         # Update formation name
         self.des_formation_name = 'translate'
-        # Append to formation list
-        #self.formation_list['formation {}'.format(self.op_num)] = {'name':self.des_formation_name, 'coord':self.des_formation_coords}
-        #self.op_num += 1
-    
+        
 
     def rotateFormation(self, anglex_deg, angley_deg, anglez_deg):
     
@@ -426,9 +418,6 @@ class Swarm:
         self.des_formation_pose = np.array([self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]])
         # Update formation name
         self.des_formation_name = 'rotate'
-        # Append to formation list
-        #self.formation_list['formation {}'.format(self.op_num)] = {'name':self.des_formation_name, 'coord':self.des_formation_coords}
-        #self.op_num += 1
     
     def scaleFormation(self, sx, sy, sz):
         # Get x, y, z of current formation
@@ -441,8 +430,4 @@ class Swarm:
         self.des_formation_coords = helper.translateFormation(origin_coords, tx, ty, tz)
         # Update formation pose (stays the same in this case)
         self.des_formation_pose = np.array([self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]])
-        self.des_formation_name = 'scale'
-        # Append to formation list
-        #self.formation_list['formation {}'.format(self.op_num)] = {'name':self.des_formation_name, 'coord':self.des_formation_coords}
-        #self.op_num += 1
-    
+        self.des_formation_name = 'scale'    
