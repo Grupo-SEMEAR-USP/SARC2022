@@ -282,12 +282,14 @@ class Swarm:
             rospy.loginfo(f'UAVs {uavs} did not sent to position')
 
     def is_on_formation(self) -> bool:
-
+        
         #for uav, position in zip(self.uavs, self.formation):
         for uav, position in zip(self.uavs, self.des_formation_coords):
-            if not uav.is_on_point(position): 
+            if not uav.is_on_point(position):
+                rospy.loginfo(f'Falso') 
                 return False
-        return True
+            else:
+                return True
 
     def spawn_drones(self) -> None:
         uav_type = os.environ.get('UAV_TYPE')
@@ -329,7 +331,8 @@ class Swarm:
     # Formations
 
     # Formations
-    def setFormation(self, shape, N, L) -> None:
+    def setFormation(self, shape, N, L, position) -> None:
+
         if (shape=='line'):
             coord = self.line(N, L)
         elif (shape=='circle'):
@@ -338,6 +341,8 @@ class Swarm:
             raise Exception('Formation input doesn\'t match any built-in formations')
 
         self.des_formation_coords = coord
+
+        self.des_formation_pose = position
 
         # Translate formation for current formation pose
         tx, ty, tz = self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]
