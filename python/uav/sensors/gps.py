@@ -10,10 +10,12 @@ class uavGPS:
         self.subscriber_name = subscriber_name
         
         self.odometry_msg = None
+        self.state = None
         self.position = None
         self.pos_x = None
         self.pos_y = None
         self.pos_z = None
+        self.heading = None
 
         # rospy.init_node(name = node_name, anonymous=True) 
         self.sub = rospy.Subscriber(name = subscriber_name,
@@ -49,6 +51,9 @@ class uavGPS:
         self.pos_x = self.position.x
         self.pos_y = self.position.y
         self.pos_z = self.position.z
+        self.heading = 0.0
+
+        self.state = [self.pos_x, self.pos_y, self.pos_z, self.heading]
 
 
     @staticmethod

@@ -218,12 +218,14 @@ class uavCamera:
         return X, Y
 
 
-    def display_img(self, all: bool = False):
-        cv2.imshow("uav View", self.cv_img)
-        if all:
-            cv2.imshow('mask red', self.mask_red)
-            #cv2.imshow("uav Mask Red", self.cv_img_masked_red)
-            #cv2.imshow("uav Mask Yellow", self.cv_img_masked_yellow)
+    def display_img(self, view_red: bool = False, view_yellow: bool = False):
+        cv2.imshow("UAV View", self.cv_img)
+
+        if view_red:
+            cv2.imshow('Mask Red', self.mask_red)
+
+        if view_yellow:
+            cv2.imshow('Mask Yellow', self.mask_yellow)
 
         k = cv2.waitKey(33)
         
@@ -232,7 +234,6 @@ class uavCamera:
     def update_state(self) -> None:        
         
         if not self.detected:
-            self.display_img(True)
             self.color_detection(img_src = self.cv_img)
             self.max_fire_area = self.find_centroid()
 

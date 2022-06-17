@@ -18,7 +18,8 @@ GOING_TO_START = 2
 PATROLLING = 3
 GOING_TO_FIRE = 4
 FIRE_CENTRALIZING = 5
-FIRE_CENTRALIZED = 6
+GOINT_TO_FIRE_FORMATION = 6
+FIRE_CENTRALIZED = 7
 
 PI = np.pi
 
@@ -135,6 +136,15 @@ class Swarm:
             if self.centralize_on_fire():
                 rospy.loginfo('Fire centralized')
 
+                self.create_squate_formation(30)
+                self.goto_formation()
+
+                self.state = GOINT_TO_FIRE_FORMATION
+
+        elif self.state == GOINT_TO_FIRE_FORMATION:
+            if self.is_on_formation():
+                rospy.loginfo('Fire formation reached')
+
                 self.state = FIRE_CENTRALIZED
 
     def centralize_on_fire(self) -> bool:
@@ -186,6 +196,50 @@ class Swarm:
         self.last_sent_fire_position = position
 
         return False
+
+    def create_squate_formation(self, altitude: float) -> None:
+        uav = self.uavs[self.center_drone-1]
+
+        x_min, y_min, x_max, y_max = uav.camera.find_dimensions_of_fire()
+
+        center_x = (x_min + x_max) / 2
+        center_y = (y_min + y_max) / 2
+
+        scale = 1.1
+        x_min_scaled = int(scale*(x_min - center_x) + center_x)
+        x_max_scaled = int(scale*(x_max - center_x) + center_x)
+        y_min_scaled = int(scale*(y_min - center_y) + center_y)
+        y_max_scaled = int(scale*(y_max - center_y) + center_y)
+
+        self.formation = []
+
+        self.formation.append(uav.gps.state)
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_min, y_min, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_min, y_max, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_max, y_max, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_max, y_min, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_min_scaled, y_min_scaled, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_min_scaled, y_max_scaled, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_max_scaled, y_max_scaled, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(x_max_scaled, y_min_scaled, uav.pos_z)
+        self.formation.append([uav.pos_x-real_y, uav.pos_y-real_x, altitude, 0.0])
+
 
     def create_start_formation(self) -> None:
         
@@ -264,35 +318,33 @@ class Swarm:
 
     def start_trajectory(self) -> None:
 
-        failed_spawns = []
+        failed_uavs = []
 
         for uav in self.uavs:
             res_1 = uav.trajectory_generation(self.trajectories[uav.node_name], 1)
             res_2 = uav.start_trajectory()
 
             if not res_1.success or not res_2.success:
-                failed_spawns.append(uav.uav_id)
+                failed_uavs.append(uav.uav_id)
 
-        if not failed_spawns:
+        if not failed_uavs:
             rospy.loginfo(f'All UAVs started trajectory')
         else:
-            uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
-            rospy.loginfo(f'UAVs {uavs} did not start trajectory')
+            rospy.loginfo(f'UAVs {failed_uavs} did not start trajectory')
 
     def stop_trajectory(self) -> None:
-        failed_spawns = []
+        failed_uavs = []
 
         for uav in self.uavs:
             res = uav.stop_trajectory()
 
             if not res.success:
-                failed_spawns.append(uav.uav_id)
+                failed_uavs.append(uav.uav_id)
 
-        if not failed_spawns:
+        if not failed_uavs:
             rospy.loginfo(f'All UAVs stoped moving')
         else:
-            uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
-            rospy.loginfo(f'UAVs {uavs} did not stop moving')
+            rospy.loginfo(f'UAVs {failed_uavs} did not stop moving')
 
     def anyone_found_fire(self) -> None or UAV:
 
@@ -307,7 +359,7 @@ class Swarm:
 
     def goto_formation(self) -> None:
 
-        failed_spawns = []
+        failed_uavs = []
 
         for i in range(self.swarm_size):
             uav = self.uavs[i]
@@ -316,13 +368,12 @@ class Swarm:
             res = uav.go_to_point(position)
 
             if not res.success:
-                failed_spawns.append(uav.uav_id)
+                failed_uavs.append(uav.uav_id)
 
-        if not failed_spawns:
+        if not failed_uavs:
             rospy.loginfo(f'All UAVs sent to position')
         else:
-            uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
-            rospy.loginfo(f'UAVs {uavs} did not sent to position')
+            rospy.loginfo(f'UAVs {failed_uavs} did not sent to position')
 
     def is_on_formation(self) -> bool:
         
@@ -343,7 +394,7 @@ class Swarm:
         dAngle = np.pi * 2 / (self.swarm_size - 1) if self.swarm_size > 1 else 0
         angle = 0
 
-        failed_spawns = []
+        failed_uavs = []
 
         for i in range(1, self.swarm_size+1):
             if i == self.center_drone:
@@ -357,13 +408,12 @@ class Swarm:
             res = self.spawner(f"{i} {uav_type} --enable-rangefinder --enable-ground-truth --{camera} --pos {x} {y} 0.5 0.0")
 
             if not res.success:
-                failed_spawns.append(i)
+                failed_uavs.append(i)
 
-        if not failed_spawns:
+        if not failed_uavs:
             rospy.loginfo(f'All UAVs spawns succeeded')
         else:
-            uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
-            rospy.loginfo(f'UAVs {uavs} not spawned successfully')
+            rospy.loginfo(f'UAVs {failed_uavs} not spawned successfully')
 
 
     def land_all_there(self, position: list) -> None:

@@ -249,8 +249,7 @@ class UAV:
         self.pos_z = self.gps.pos_z
 
         if self.uav_id == 1:
-            #self.camera.display_img(True)
-            pass
+            self.camera.display_img(view_red=True)
         
 
         #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 
