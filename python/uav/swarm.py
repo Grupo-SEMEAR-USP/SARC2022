@@ -110,7 +110,7 @@ class Swarm:
         elif self.state == GOING_TO_START:
             if self.is_on_formation():
                 rospy.loginfo('First formation reached')
-                self.countdown()
+                #self.countdown()
                 self.create_patrolling_trajectory()
                 self.start_trajectory()
                 self.state = PATROLLING
@@ -190,7 +190,7 @@ class Swarm:
 
             #rospy.loginfo(f'real: {[real_x, real_y]}')
 
-            position = [uav.pos_x-real_y, uav.pos_y-real_x, uav.pos_z, 0.0]
+            position = [uav.pos_x+real_y, uav.pos_y+real_x, uav.pos_z, 0.0]
 
         uav.go_to_point(position)
         self.last_sent_fire_position = position
