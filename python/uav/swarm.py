@@ -1,24 +1,15 @@
 #!/usr/bin/python3
+
+from multiprocessing import Process
+from threading import Thread
 import numpy as np
-from re import A
-from matplotlib.pyplot import connect
+import logging
 import rospy
 import os
-from threading import Thread
-from multiprocessing import Process
-import time
-import json
-import traceback
-import logging
-#import random
-import sys
-import cv2
 
-from tkinter import CENTER
 from uav import UAV
 import helper
 
-from mavros_msgs import srv
 from mrs_msgs.srv import String
 
 STARTING = 0
@@ -29,7 +20,7 @@ GOING_TO_FIRE = 4
 FIRE_CENTRALIZING = 5
 FIRE_CENTRALIZED = 6
 
-pi = np.pi
+PI = np.pi
 
 class Swarm:
 
@@ -58,6 +49,10 @@ class Swarm:
         self.des_formation_pose = np.array([0,0,0])
 
         self.uavs = None
+
+        self.last_sent_fire_position = None
+        self.fire_centralizing_distance_reduction = 0.5
+        self.fire_centralizing_altitude_addition = 10
 
         rospy.init_node(name = node_name)
       
@@ -136,13 +131,56 @@ class Swarm:
                 self.state = FIRE_CENTRALIZING
         
         elif self.state == FIRE_CENTRALIZING:
-            self.centralize_on_fire()
+            if self.centralize_on_fire():
+                rospy.loginfo('Fire centralized')
 
-    def centralize_on_fire(self) -> None:
+                self.state = FIRE_CENTRALIZED
 
-        uav = self.uavs[self.center_drone]
+    def centralize_on_fire(self) -> bool:
 
-        enclosed = uav.check_enclosing_circle()
+        uav = self.uavs[self.center_drone-1]
+
+        if self.last_sent_fire_position and not uav.is_on_point(self.last_sent_fire_position):
+            return
+
+        #rospy.sleep(0.5)
+
+        x_min, y_min, x_max, y_max = uav.camera.find_dimensions_of_fire()
+        #rospy.loginfo(f'fire: {[x_min, y_min, x_max, y_max]}')
+
+        center_pixel_x = (x_min + x_max) / 2
+        center_pixel_y = (y_min + y_max) / 2
+        #rospy.loginfo(f'center: {[center_pixel_x, center_pixel_y]}')
+
+        camera_center_x, camera_center_y = uav.camera.get_camera_centers()
+        #rospy.loginfo(f'camera: {[camera_center_x, camera_center_y]}')
+
+        is_on_center = helper.is_close_enough_2d(center_pixel_x, center_pixel_y, camera_center_x, camera_center_y, 30)
+
+        if is_on_center:
+            camera_width, camera_height = uav.camera.get_camera_dimensions()
+
+            length_x, length_y = (x_max - x_min), (y_max - y_min)
+            
+            if length_x < camera_width * 0.8 and length_y < camera_height * 0.8:
+                return True
+
+            position = [uav.pos_x, uav.pos_y, uav.pos_z+self.fire_centralizing_altitude_addition, 0.0]
+        else:
+            real_x, real_y = uav.camera.estimate_3d_coordinates(center_pixel_x, center_pixel_y, uav.pos_z)
+            #rospy.loginfo(f'real: {[real_x, real_y]}')
+
+            real_x *= self.fire_centralizing_distance_reduction
+            real_y *= self.fire_centralizing_distance_reduction
+
+            #rospy.loginfo(f'real: {[real_x, real_y]}')
+
+            position = [uav.pos_x-real_y, uav.pos_y-real_x, uav.pos_z, 0.0]
+
+        uav.go_to_point(position)
+        self.last_sent_fire_position = position
+
+        return False
 
     def create_start_formation(self) -> None:
         
@@ -283,13 +321,12 @@ class Swarm:
 
     def is_on_formation(self) -> bool:
         
-        #for uav, position in zip(self.uavs, self.formation):
-        for uav, position in zip(self.uavs, self.des_formation_coords):
+        #for uav, position in zip(self.uavs, self.des_formation_coords):
+        for uav, position in zip(self.uavs, self.formation):
             if not uav.is_on_point(position):
-                rospy.loginfo(f'Falso') 
                 return False
-            else:
-                return True
+
+        return True
 
     def spawn_drones(self) -> None:
         uav_type = os.environ.get('UAV_TYPE')
@@ -324,14 +361,14 @@ class Swarm:
             rospy.loginfo(f'UAVs {uavs} not spawned successfully')
 
 
-    def land_all_there(self, position) -> None:
+    def land_all_there(self, position: list) -> None:
         for uav in self.uavs:
             uav.land_position(position)
 
     # Formations
 
     # Formations
-    def setFormation(self, shape, N, L, position) -> None:
+    def setFormation(self, shape: str, N: int, L: float, position: list) -> None:
 
         if (shape=='line'):
             coord = self.line(N, L)
@@ -358,7 +395,7 @@ class Swarm:
             
         self.curr_formation_coords = self.des_formation_coords
     
-    def line(N, L=1):
+    def line(N: int, L: float =1) -> np.ndarray:
         if L/N < 1:
             L = N-1
             print("Distance between drones is too short\nSetting new length as {}".format(L))
@@ -373,15 +410,15 @@ class Swarm:
         logging.debug("Line done\n")
         return coord   
 
-    def circle(self, N, L):  # L é o raio e N é o numero de drones
+    def circle(N: int, L: float) -> np.ndarray:  # L é o raio e N é o numero de drones
         xc = yc = 0
-        if 2*pi*L < N:
-            L = round(N/(2*pi),2)
+        if 2*PI*L < N:
+            L = round(N/(2*PI),2)
             print("Distance between drones is too short\nSetting new length as {}".format(L))
         coord = np.empty((0,4))
         z0 = 30
         logging.debug("Beginning circle formation")
-        angle = 2*pi/N
+        angle = 2*PI/N
         for idx in range(N):    
             xi = L*np.cos(idx*angle)
             yi = L*np.sin(idx*angle)
@@ -393,7 +430,7 @@ class Swarm:
 
     # Operations with the swarm formations
 
-    def translateFormation(self, position) -> None:
+    def translateFormation(self, position: list) -> None:
     
         tx = position[0]
         ty = position[1]
@@ -406,7 +443,7 @@ class Swarm:
         self.des_formation_name = 'translate'
         
 
-    def rotateFormation(self, anglex_deg, angley_deg, anglez_deg):
+    def rotateFormation(self, anglex_deg: float, angley_deg: float, anglez_deg: float) -> None:
     
         anglex_rad = anglex_deg*np.pi/180
         angley_rad = angley_deg*np.pi/180
@@ -424,7 +461,7 @@ class Swarm:
         # Update formation name
         self.des_formation_name = 'rotate'
     
-    def scaleFormation(self, sx, sy, sz):
+    def scaleFormation(self, sx: float, sy: float, sz: float) -> None:
         # Get x, y, z of current formation
         tx, ty, tz = self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]
         # Translate back to the origin 
