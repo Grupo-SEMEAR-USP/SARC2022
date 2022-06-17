@@ -1,10 +1,24 @@
-from tkinter import CENTER
-from uav import UAV
-
+#!/usr/bin/python3
 import numpy as np
+from re import A
+from matplotlib.pyplot import connect
 import rospy
 import os
+from threading import Thread
+from multiprocessing import Process
+import time
+import json
+import traceback
+import logging
+#import random
+import sys
+import cv2
 
+from tkinter import CENTER
+from uav import UAV
+import helper
+
+from mavros_msgs import srv
 from mrs_msgs.srv import String
 
 STARTING = 0
@@ -14,6 +28,8 @@ PATROLLING = 3
 GOING_TO_FIRE = 4
 FIRE_CENTRALIZING = 5
 FIRE_CENTRALIZED = 6
+
+pi = np.pi
 
 class Swarm:
 
@@ -35,9 +51,17 @@ class Swarm:
         self.formation = []
         self.trajectories = {}
 
+        self.curr_formation_name = ''
+        self.curr_formation_coords = np.empty((0,4))
+
+        self.curr_formation_pose = np.array([0,0,0])
+        self.des_formation_pose = np.array([0,0,0])
+
         self.uavs = None
 
         rospy.init_node(name = node_name)
+      
+
 
         if center_drone < 1 or center_drone > swarm_size:
             rospy.logerr('Drone central incorreto!')
@@ -259,10 +283,10 @@ class Swarm:
 
     def is_on_formation(self) -> bool:
 
-        for uav, position in zip(self.uavs, self.formation):
+        #for uav, position in zip(self.uavs, self.formation):
+        for uav, position in zip(self.uavs, self.des_formation_coords):
             if not uav.is_on_point(position): 
                 return False
-        
         return True
 
     def spawn_drones(self) -> None:
@@ -296,3 +320,114 @@ class Swarm:
         else:
             uavs = failed_spawns if len(failed_spawns) == 1 else failed_spawns.join(', ') 
             rospy.loginfo(f'UAVs {uavs} not spawned successfully')
+
+
+    def land_all_there(self, position) -> None:
+        for uav in self.uavs:
+            uav.land_position(position)
+
+    # Formations
+
+    # Formations
+    def setFormation(self, shape, N, L) -> None:
+        if (shape=='line'):
+            coord = self.line(N, L)
+        elif (shape=='circle'):
+            coord = self.circle(N, L)
+        else:
+            raise Exception('Formation input doesn\'t match any built-in formations')
+
+        self.des_formation_coords = coord
+
+        # Translate formation for current formation pose
+        tx, ty, tz = self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]
+        self.des_formation_coords = helper.translateFormation(self.des_formation_coords, tx, ty, tz)
+
+        # Update formation name
+        self.des_formation_name = shape
+
+    def applyFormation(self) -> None:
+        
+        for uav, position in zip(self.uavs, self.des_formation_coords):
+            uav.go_to_point(position)
+            
+        self.curr_formation_coords = self.des_formation_coords
+    
+    def line(N, L=1):
+        if L/N < 1:
+            L = N-1
+            print("Distance between drones is too short\nSetting new length as {}".format(L))
+        coord = np.empty((0,4))
+        z0 = 30
+        f = L/(N-1)
+        logging.debug("Beginning line formation")
+        for idx in range(N):
+            point = [round(f*(N-1-idx),2), 0, z0, 1]
+            coord = np.concatenate((coord,[point]))
+        coord = helper.translateFormation(coord, -L/2, 0, 0)
+        logging.debug("Line done\n")
+        return coord   
+
+    def circle(self, N, L):  # L é o raio e N é o numero de drones
+        xc = yc = 0
+        if 2*pi*L < N:
+            L = round(N/(2*pi),2)
+            print("Distance between drones is too short\nSetting new length as {}".format(L))
+        coord = np.empty((0,4))
+        z0 = 30
+        logging.debug("Beginning circle formation")
+        angle = 2*pi/N
+        for idx in range(N):    
+            xi = L*np.cos(idx*angle)
+            yi = L*np.sin(idx*angle)
+            point = [round(xc+xi,2), round(yc+yi,2), 30, 1]
+            coord = np.concatenate((coord,[point]))
+        logging.debug("Circle done\n")
+        return coord
+
+
+    # Operations with the swarm formations
+
+    def translateFormation(self, position) -> None:
+    
+        tx = position[0]
+        ty = position[1]
+        tz = position[2]
+        # Translate formation
+        self.des_formation_coords = helper.translateFormation(self.des_formation_coords, tx, ty, tz)
+        # Update formation pose 
+        self.des_formation_pose = np.array([self.des_formation_pose[0]+tx, self.des_formation_pose[1]+ty, self.des_formation_pose[2]+tz])
+        # Update formation name
+        self.des_formation_name = 'translate'
+        
+
+    def rotateFormation(self, anglex_deg, angley_deg, anglez_deg):
+    
+        anglex_rad = anglex_deg*np.pi/180
+        angley_rad = angley_deg*np.pi/180
+        anglez_rad = anglez_deg*np.pi/180
+        # Get x, y, z of current formation
+        tx, ty, tz = self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]
+        # Translate back to the origin 
+        origin_coords = helper.translateFormation(self.des_formation_coords, -tx, -ty, -tz)
+        # Rotate formation on the origin
+        origin_coords = helper.rotateFormation(origin_coords, anglex_rad, angley_rad, anglez_rad)
+        # Translate back to the current pose
+        self.des_formation_coords = helper.translateFormation(origin_coords, tx, ty, tz)
+        # Update formation pose (stays the same in this case)
+        self.des_formation_pose = np.array([self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]])
+        # Update formation name
+        self.des_formation_name = 'rotate'
+    
+    def scaleFormation(self, sx, sy, sz):
+        # Get x, y, z of current formation
+        tx, ty, tz = self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]
+        # Translate back to the origin 
+        origin_coords = helper.translateFormation(self.des_formation_coords, -tx, -ty, -tz)
+        # Scale formation
+        origin_coords = helper.scaleFormation(origin_coords, sx, sy, sz)
+        # Translate back to the current pose
+        self.des_formation_coords = helper.translateFormation(origin_coords, tx, ty, tz)
+        # Update formation pose (stays the same in this case)
+        self.des_formation_pose = np.array([self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]])
+        self.des_formation_name = 'scale'    
