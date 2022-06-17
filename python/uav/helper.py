@@ -1,9 +1,11 @@
 import numpy as np 
 
-def is_clonse_enough(x: float, y: float) -> bool:
-    return abs(x - y) < 1e-1
+def is_close_enough(x: float, y: float, dist: float = 1e-1) -> bool:
+    return abs(x - y) < dist
 
-
+def is_close_enough_2d(x_1: float, y_1: float, x_2: float, y_2: float, dist: float) -> bool:
+    real_dist = np.sqrt((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2)
+    return real_dist <= dist
 
 # Transformation functions
 

@@ -10,10 +10,12 @@ class uavGPS:
         self.subscriber_name = subscriber_name
         
         self.odometry_msg = None
+        self.state = None
         self.position = None
         self.pos_x = None
         self.pos_y = None
         self.pos_z = None
+        self.heading = None
 
         # rospy.init_node(name = node_name, anonymous=True) 
         self.sub = rospy.Subscriber(name = subscriber_name,
@@ -49,13 +51,16 @@ class uavGPS:
         self.pos_x = self.position.x
         self.pos_y = self.position.y
         self.pos_z = self.position.z
+        self.heading = 0.0
+
+        self.state = [self.pos_x, self.pos_y, self.pos_z, self.heading]
 
 
     @staticmethod
-    def circle_equation(angle_deg: np.array or float,
+    def circle_equation(angle_deg: np.ndarray or float,
                         x_center: float,
                         y_center: float,
-                        radius: float) -> np.array or float:
+                        radius: float) -> np.ndarray or float:
         '''
             x = R * cos(theta) + x0
             y = R * sin(theta) + y0
@@ -80,7 +85,7 @@ class uavGPS:
                                 x_center: int or float,
                                 y_center: int or float,
                                 radius: int or float,
-                                num_of_pts: int = 4) -> float or np.array:
+                                num_of_pts: int = 4) -> float or np.ndarray:
 
         ''' 
             Equally spaced points of a circular trajectory, given a number of
@@ -100,7 +105,7 @@ class uavGPS:
     def fire_detection_mapping( self,
                                 fire_pixel_area: float,
                                 min_area_threshold: float,
-                                img_to_save: np.array) -> bool:
+                                img_to_save: np.ndarray) -> bool:
         ''' 
             If an uav detected fire, save its state (the image, fire area, position, time, etc)
         '''

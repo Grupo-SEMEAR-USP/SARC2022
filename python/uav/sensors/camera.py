@@ -30,8 +30,8 @@ class uavCamera:
         #https://mayavan95.medium.com/3d-position-estimation-of-a
         #-known-object-using-a-single-camera-7a82b37b326b
         #TODO: pegar os valores intrisics no arquivo .xacro da camera
-        self.focus_x = 277
-        self.focus_y = 277
+        self.focus_x = -510
+        self.focus_y = -833
         self.x_center = int(0.5 * self.img_width)
         self.y_center = int(0.5 * self.img_height)
                 
@@ -47,14 +47,27 @@ class uavCamera:
         self.cv_img = np.zeros((img_height, img_width, 3), dtype= np.uint8)
         self.blurred_img = cv2.GaussianBlur( self.cv_img, (5,5), 0)
         self.cv_img_hsv = cv2.cvtColor(self.blurred_img, cv2.COLOR_BGR2HSV)
+
+        self.mask_red = np.zeros((img_height, img_width, 3), dtype= np.uint8)
+        self.cv_img_masked_red = np.zeros((img_height, img_width, 3), dtype= np.uint8)
+        
+        self.mask_yellow = np.zeros((img_height, img_width, 3), dtype= np.uint8)
+        self.cv_img_masked_yellow = np.zeros((img_height, img_width, 3), dtype= np.uint8)
         
         self.i_see_fire: bool = False
         self.max_fire_area = None
 
-        self.countours = None
+        self.max_countour = None
+        self.detected = False
 
         self.seq = 0
         
+
+    def get_camera_dimensions(self) -> tuple:
+        return self.img_width, self.img_height
+
+    def get_camera_centers(self) -> tuple:
+        return self.x_center, self.y_center
 
     # img(ROS) -> img(OpenCV)
     def img_msg_to_cv(self, img_msg: Image) -> None:
@@ -62,8 +75,12 @@ class uavCamera:
         # msg.Image -> 'cv2.Image'
         cv_img_msg = self.bridge.imgmsg_to_cv2(img_msg, 'passthrough')
 
+        cv_img_msg = cv2.resize(cv_img_msg, (self.img_width, self.img_height))
+
         #Color correction
         self.cv_img = cv2.cvtColor(cv_img_msg, cv2.COLOR_BGR2RGB)
+
+        self.detected = False
 
         #cv2.imwrite(f'images/img{img_msg.header.seq}.jpg', self.cv_img)
 
@@ -112,14 +129,22 @@ class uavCamera:
     def find_centroid(self) -> float or None:
         max_area = None
         
-        self.countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours( self.mask_red, self.countours, 0, (0,255,0), 3)
+        countours, hierarchy = cv2.findContours(self.mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours( self.mask_red, countours, 0, (0,255,0), 3)
         
-        for countour in self.countours: 
+        for countour in countours: 
             self.red_area = cv2.contourArea(countour)
             #print(self.area)
             if self.red_area>10000: 
-                max_area = max(self.red_area, max_area) if max_area else self.red_area
+
+                if max_area:
+                    if self.red_area > max_area:
+                        max_area = self.red_area
+                        self.max_countour = countour
+                else:
+                    max_area = self.red_area
+                    self.max_countour = countour
+                
                 self.red_moment = cv2.moments(countour)
                 # position of the centroid
                 self.red_cx = int(self.red_moment["m10"]/self.red_moment["m00"]) 
@@ -129,18 +154,16 @@ class uavCamera:
 
         return max_area    
 
-    def find_enclosing_circle(self) -> None:
+    def find_dimensions_of_fire(self) -> tuple:
+        x_min, y_min, x_max, y_max = self.bounding_box_vertices(self.mask_red)
 
-        (x, y), radius = cv2.minEnclosingCircle(self.countours)
+        cv2.rectangle(self.mask_red, (x_min, y_min), (x_max, y_max), (255, 0, 0), 3)
 
-        center = (int(x), int(y))
-        radius = int(radius)
-
-        cv2.circle(self.cv_img, center, radius, (0, 0, 0), 2)
-
+        return x_min, y_min, x_max, y_max
+    
+    
     @staticmethod
-    def bounding_box_vertices(img_mask: np.array) -> tuple:
-   
+    def bounding_box_vertices(img_mask: np.ndarray) -> tuple:
         '''
             Bounding box of detected region (ex: red area)
         '''
@@ -161,12 +184,10 @@ class uavCamera:
         
         return xmin, ymin, xmax, ymax
 
-    
-    
     def estimate_3d_coordinates(    self,
-                                    x_pixel: np.array,
-                                    y_pixel: np.array,
-                                    z_gps: float) -> np.array:
+                                    x_pixel: np.ndarray,
+                                    y_pixel: np.ndarray,
+                                    z_gps: float) -> np.ndarray:
 
         '''
             #TODO: 
@@ -197,11 +218,14 @@ class uavCamera:
         return X, Y
 
 
-    def display_img(self, all: bool = False):
-        cv2.imshow("uav View", self.cv_img)
-        if all:
-            cv2.imshow("uav Mask Red", self.cv_img_masked_red)
-            #cv2.imshow("uav Mask Yellow", self.cv_img_masked_yellow)
+    def display_img(self, view_red: bool = False, view_yellow: bool = False):
+        cv2.imshow("UAV View", self.cv_img)
+
+        if view_red:
+            cv2.imshow('Mask Red', self.mask_red)
+
+        if view_yellow:
+            cv2.imshow('Mask Yellow', self.mask_yellow)
 
         k = cv2.waitKey(33)
         
@@ -209,8 +233,11 @@ class uavCamera:
 
     def update_state(self) -> None:        
         
-        self.color_detection(img_src = self.cv_img)
-        self.max_fire_area = self.find_centroid()
+        if not self.detected:
+            self.color_detection(img_src = self.cv_img)
+            self.max_fire_area = self.find_centroid()
+
+            self.detected = True
         
         #cv2.imwrite(f'images/img{self.seq}.jpg', self.cv_img)
         #self.seq += 1

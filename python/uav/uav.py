@@ -5,7 +5,7 @@ from sensors.camera import uavCamera
 from sensors.gps import uavGPS
 
 # Importing Functions
-from helper import is_clonse_enough
+import helper
 
 # Import Libraries
 import pandas as pd
@@ -249,7 +249,7 @@ class UAV:
         self.pos_z = self.gps.pos_z
 
         if self.uav_id == 1:
-            self.camera.display_img()
+            self.camera.display_img(view_red=True)
         
 
         #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 
@@ -263,8 +263,6 @@ class UAV:
                 
         #rospy.loginfo("uav position:\n%s", self.position)
 
-    def check_enclosing_circle(self) -> bool:
-        self.camera.find_enclosing_circle()
     
     #TODO: Verificar a possibilidade de passar as funcoes de trajetoria 
     #para a classe uavGPS
@@ -337,7 +335,7 @@ class UAV:
 
         return self.fly_to_xyz_in_a_given_frame(msg_point_header, msg_point_reference)
 
-    def fly_velocity(self, velocity, altitude) -> None:
+    def fly_velocity(self, velocity: float, altitude: float) -> None:
 
         #velocity should be a float x,y,z vector
         
@@ -363,7 +361,7 @@ class UAV:
     def land_now(self) -> None:
         self.land_here()
 
-    def land_position(self, position) -> None:
+    def land_position(self, position: list) -> None:
 
         msg_point_header = Header()
         msg_point_reference = Reference()
@@ -378,8 +376,9 @@ class UAV:
         msg_point_reference.heading = position [2]
 
         self.land_there(msg_point_header, msg_point_reference)
-        
+
     def is_on_point(self, position: list) -> bool:
+        self.update_state()
         x = position[0]
         y = position[1]
         z = position[2]
