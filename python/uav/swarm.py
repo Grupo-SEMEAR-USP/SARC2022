@@ -53,6 +53,7 @@ class Swarm:
         self.last_sent_fire_position = None
         self.fire_centralizing_distance_reduction = 0.5
         self.fire_centralizing_altitude_addition = 10
+        self.fire_center_image_size_threshold = 50
 
         rospy.init_node(name = node_name)
       
@@ -155,7 +156,7 @@ class Swarm:
         camera_center_x, camera_center_y = uav.camera.get_camera_centers()
         #rospy.loginfo(f'camera: {[camera_center_x, camera_center_y]}')
 
-        is_on_center = helper.is_close_enough_2d(center_pixel_x, center_pixel_y, camera_center_x, camera_center_y, 30)
+        is_on_center = helper.is_close_enough_2d(center_pixel_x, center_pixel_y, camera_center_x, camera_center_y, self.fire_center_image_size_threshold)
 
         if is_on_center:
             camera_width, camera_height = uav.camera.get_camera_dimensions()
@@ -165,7 +166,11 @@ class Swarm:
             if length_x < camera_width * 0.8 and length_y < camera_height * 0.8:
                 return True
 
-            position = [uav.pos_x, uav.pos_y, uav.pos_z+self.fire_centralizing_altitude_addition, 0.0]
+            new_z = uav.pos_z+self.fire_centralizing_altitude_addition
+
+            position = [uav.pos_x, uav.pos_y, new_z, 0.0]
+
+            rospy.loginfo(f'Elevating to {new_z} m')
         else:
             real_x, real_y = uav.camera.estimate_3d_coordinates(center_pixel_x, center_pixel_y, uav.pos_z)
             #rospy.loginfo(f'real: {[real_x, real_y]}')

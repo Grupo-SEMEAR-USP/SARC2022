@@ -219,7 +219,7 @@ class uavCamera:
 
 
     def display_img(self, all: bool = False):
-        #cv2.imshow("uav View", self.cv_img)
+        cv2.imshow("uav View", self.cv_img)
         if all:
             cv2.imshow('mask red', self.mask_red)
             #cv2.imshow("uav Mask Red", self.cv_img_masked_red)
