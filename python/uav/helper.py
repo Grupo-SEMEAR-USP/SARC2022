@@ -1,6 +1,6 @@
 import numpy as np 
 
-def is_close_enough(x: float, y: float, dist: float = 1e-1) -> bool:
+def is_close_enough(x: float, y: float, dist: float = 0.5) -> bool:
     return abs(x - y) < dist
 
 def is_close_enough_2d(x_1: float, y_1: float, x_2: float, y_2: float, dist: float) -> bool:
