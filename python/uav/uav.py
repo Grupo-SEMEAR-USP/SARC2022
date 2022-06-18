@@ -95,11 +95,12 @@ class UAV:
 
         if start_init:
             rospy.init_node(name = self.node_name)
+            self.t0 = rospy.get_rostime()
+            self.time_now = rospy.get_rostime()
         ##Add self.configure na main do script ao inves de coloca-lo e __init__
         # self.configure()
 
-        self.t0 = rospy.get_rostime()
-        self.time_now = rospy.get_rostime()
+        
 
         self.goto_point_seq = 0
 

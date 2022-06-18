@@ -40,8 +40,10 @@ class uavGPS:
         #store random data in 'aux_vars_dict' if needed
         self.aux_vars_dict: dict = {'var1': np.pi}
         
-        self.t0 = rospy.get_rostime()
-        self.time_now = rospy.get_rostime()
+        #*Só é possível usar rospy.get_rostime()
+        #*se algum init_node() tiver sido chamado anteriormente
+        # self.t0 = rospy.get_rostime()
+        # self.time_now = rospy.get_rostime()
     
     
     def read_odometry_msgs(self, odom_msg: Odometry) -> None:
