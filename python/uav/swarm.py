@@ -528,3 +528,86 @@ class Swarm:
         # Update formation pose (stays the same in this case)
         self.des_formation_pose = np.array([self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]])
         self.des_formation_name = 'scale'    
+        
+        
+    def fireCombat(self, R, position) -> None:
+        
+        # Setting inicial formation
+        self.setFormation('circle', self.swarm_size, R, position)
+        self.applyFormation()
+        form = False
+        while form == False:
+            form = self.is_on_formation()
+            rospy.loginfo("Uavs are not on point")
+        rospy.loginfo("Formation ready")
+        rospy.sleep(5)
+        rospy.loginfo("Starting fire fighting")
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        rospy.loginfo("Starting Part4")
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        rospy.loginfo("Starting Part4")
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 30)
+        self.scaleFormation(0.9, 0.9, 1)
+        self.applyFormation()
+        rospy.loginfo("Final Phase: Going closer to the center")
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 20)
+        self.scaleFormation(0.7, 0.7, 1)
+        self.applyFormation()
+        form = False
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 15)
+        self.scaleFormation(0.5, 0.5, 1)
+        self.applyFormation()
+        while form == False:
+                form = self.is_on_formation()
+        self.rotateFormation(0, 0, 15)
+        self.scaleFormation(0.5, 0.5, 1)
+        self.applyFormation()
+        rospy.loginfo("Firefighting was a success")
