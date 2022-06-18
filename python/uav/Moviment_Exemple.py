@@ -27,115 +27,84 @@ def main():
   position = [10, 10, 30]
   R = 15
   swarm.setFormation('circle', 8, R, position)
+  #swarm.translateFormation('[30, 30, 30]')
   swarm.applyFormation()
   while form == 'False':
     form = swarm.is_on_formation()
     rospy.loginfo("Uavs are not on point")
   rospy.loginfo("Uavs are on point")
-  rospy.sleep(15)
+  rospy.sleep(5)
+  while form == 'False':
+        form = swarm.is_on_formation()
+  rospy.loginfo("Starting Part2")
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
+  rospy.loginfo("Starting Part3")
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
+  rospy.loginfo("Starting Part4")
+  rospy.sleep(1)
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
+  rospy.loginfo("Starting Part4")
+  rospy.sleep(1)
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = 'False'
+  while form == 'False':
+        form = swarm.is_on_formation()
   swarm.rotateFormation(0, 0, 30)
   swarm.scaleFormation(0.9, 0.9, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
-  swarm.rotateFormation(0, 0, 25)
+  form = False
+  while form == False:
+        form = swarm.is_on_formation()
+  swarm.rotateFormation(0, 0, 20)
   swarm.scaleFormation(0.7, 0.7, 1)
   swarm.applyFormation()
-  rospy.sleep(3)
+  form = False
+  while form == 'False':
+        form = swarm.is_on_formation()
   swarm.rotateFormation(0, 0, 15)
-  swarm.scaleFormation(0.7, 0.7, 1)
+  swarm.scaleFormation(0.5, 0.5, 1)
   swarm.applyFormation()
-
-
-
-  # rospy.loginfo("Starting Part2")
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.loginfo("Starting Part3")
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.loginfo("Starting Part4")
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.loginfo("Starting Part4")
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # rospy.sleep(1)
-  # swarm.rotateFormation(0, 0, 30)
-  # swarm.scaleFormation(0.9, 0.9, 1)
-  # swarm.applyFormation()
-  # form = 'False'
-  # while form == 'False':
-  #       form = swarm.is_on_formation()
-  # swarm.scaleFormation(0.6, 0.6, 1)
-  # rospy.loginfo("Formation rotation was a sucess")
+  while form == 'False':
+        form = swarm.is_on_formation()
+  swarm.rotateFormation(0, 0, 15)
+  swarm.scaleFormation(0.5, 0.5, 1)
+  swarm.applyFormation()
+  rospy.loginfo("Formation rotation was a sucess")
   
 if __name__ == '__main__':
   main()
