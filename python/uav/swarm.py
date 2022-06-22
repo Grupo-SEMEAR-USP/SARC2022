@@ -78,11 +78,8 @@ class Swarm:
 
         self.countdown()
 
-        self.state = -1
+        self.state = STARTED
         self.points_saved = False
-
-        self.create_patrolling_trajectory()
-        self.start_trajectory()
 
         self.t0 = rospy.get_rostime()
         self.time_now = rospy.get_rostime()
@@ -125,10 +122,6 @@ class Swarm:
     def update(self):
 
         self.time_now = rospy.get_rostime()
-
-        if self.time_now.secs - self.t0.secs > 60:
-            self.save_drones_travel_position()
-            quit()
 
         for uav in self.uavs:
             uav.update_state(self.t0.secs, self.time_now.secs)
@@ -179,6 +172,8 @@ class Swarm:
                 rospy.loginfo('Fire formation reached')
 
                 self.state = FIRE_CENTRALIZED
+
+                self.save_drones_travel_position()
 
     def centralize_on_fire(self) -> bool:
 
