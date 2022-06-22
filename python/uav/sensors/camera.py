@@ -30,8 +30,10 @@ class uavCamera:
         #https://mayavan95.medium.com/3d-position-estimation-of-a
         #-known-object-using-a-single-camera-7a82b37b326b
         #TODO: pegar os valores intrisics no arquivo .xacro da camera
-        self.focus_x = 540
-        self.focus_y = 620
+        #self.focus_x = -540
+        #self.focus_y = -620
+        self.focus_x = -670
+        self.focus_y = -670
         self.x_center = int(0.5 * self.img_width)
         self.y_center = int(0.5 * self.img_height)
                 
@@ -164,6 +166,7 @@ class uavCamera:
         x_min, y_min, x_max, y_max = self.bounding_box_vertices(self.mask_red)
 
         cv2.rectangle(self.mask_red, (x_min, y_min), (x_max, y_max), (255, 0, 0), 3)
+        cv2.circle(self.mask_red, ((x_max + x_min) // 2, (y_min + y_max) // 2), 7, (0, 0, 0), -1)
 
         return x_min, y_min, x_max, y_max
     

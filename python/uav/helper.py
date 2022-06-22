@@ -7,6 +7,12 @@ def is_close_enough_2d(x_1: float, y_1: float, x_2: float, y_2: float, dist: flo
     real_dist = np.sqrt((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2)
     return real_dist <= dist
 
+def distance_2d(x_1: float, y_1: float, x_2: float, y_2: float) -> float:
+    return np.sqrt((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2)
+
+def modulo_2d(x: float, y: float) -> float:
+    return np.sqrt(x ** 2 + y ** 2)
+
 # Transformation functions
 
 # Transform class that works with homogeneous coordinates

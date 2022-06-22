@@ -51,7 +51,7 @@ class UAV:
         self.uav_name = f'uav{uav_id}'
         self.node_name = f'node_{self.uav_name}'
 
-        self.camera = uavCamera(img_width = 720, img_height = 480,
+        self.camera = uavCamera(img_width = 640, img_height = 360,
                                 node_name = 'uavs_imgs',
                                 subscriber_name = f'/{self.uav_name}/rgbd_down/color/image_raw')
 
@@ -103,6 +103,7 @@ class UAV:
         
 
         self.goto_point_seq = 0
+        self.waiting_time = None
 
         #Store auxiliary variables in 'aux_vars_dict'
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
@@ -378,12 +379,29 @@ class UAV:
 
         self.land_there(msg_point_header, msg_point_reference)
 
-    def is_on_point(self, position: list) -> bool:
-        self.update_state()
+    def is_on_point(self, t0: float, time_now: float, position: list) -> bool:
+        self.update_state(t0, time_now)
         x = position[0]
         y = position[1]
         z = position[2]
 
-        return helper.is_clonse_enough(self.pos_x, x) and helper.is_clonse_enough(self.pos_y, y) and helper.is_clonse_enough(self.pos_z, z)
+        return helper.is_close_enough(self.pos_x, x) and helper.is_close_enough(self.pos_y, y) and helper.is_close_enough(self.pos_z, z)
      
+    def is_on_point_for_time(self, t0: float, time_now: float, time: float,  position: list) -> bool:
+        self.update_state(t0, time_now)
+        x = position[0]
+        y = position[1]
+        z = position[2]
+
+        if helper.is_close_enough(self.pos_x, x) and helper.is_close_enough(self.pos_y, y) and helper.is_close_enough(self.pos_z, z):
+            if not self.waiting_time:
+                self.waiting_time = time_now
+                #rospy.loginfo(f"Waiting for {time} seconds")
+
+            if time_now - self.waiting_time < time:
+                return False
+            else:
+                #rospy.loginfo(f"Waited {time} seconds")
+                self.waiting_time = None
+                return True
 

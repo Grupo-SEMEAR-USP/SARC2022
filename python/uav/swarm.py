@@ -54,8 +54,10 @@ class Swarm:
 
         self.last_sent_fire_position = None
         self.fire_centralizing_distance_reduction = 0.5
-        self.fire_centralizing_altitude_addition = 10
-        self.fire_center_image_size_threshold = 50
+        self.fire_centralizing_min_reduction = 0.3
+        self.fire_centralizing_max_reduction = 0.75
+        self.fire_centralizing_altitude_addition = 15
+        self.fire_center_image_size_threshold = 30
 
         rospy.init_node(name = node_name)
       
@@ -117,7 +119,9 @@ class Swarm:
                 time = travel_points['time']
 
         data_frame = pd.DataFrame(travels, index=time)
-        data_frame.to_csv('/data/travel_points.csv')
+        data_frame.to_csv('data/travel_points.csv')
+
+        rospy.loginfo("Drones Positions Saved!")
 
     def update(self):
 
@@ -148,7 +152,7 @@ class Swarm:
             if uav_that_found:
                 rospy.loginfo('Fire Founded')
                 self.stop_trajectory()
-                self.create_circle_formation_around_uav(uav_that_found, 30, 30)
+                self.create_circle_formation_around_uav(uav_that_found, 10, 30, 30)
                 self.goto_formation()
 
                 self.state = GOING_TO_FIRE
@@ -162,7 +166,7 @@ class Swarm:
             if self.centralize_on_fire():
                 rospy.loginfo('Fire centralized')
 
-                self.create_squate_formation(30)
+                self.create_final_formation()
                 self.goto_formation()
 
                 self.state = GOINT_TO_FIRE_FORMATION
@@ -179,7 +183,7 @@ class Swarm:
 
         uav = self.uavs[self.center_drone-1]
 
-        if self.last_sent_fire_position and not uav.is_on_point(self.last_sent_fire_position):
+        if self.last_sent_fire_position and not uav.is_on_point_for_time(self.t0.secs, self.time_now.secs, 2, self.last_sent_fire_position):
             return
 
         #rospy.sleep(0.5)
@@ -198,23 +202,31 @@ class Swarm:
 
         if is_on_center:
             camera_width, camera_height = uav.camera.get_camera_dimensions()
-
-            length_x, length_y = (x_max - x_min), (y_max - y_min)
             
-            if length_x < camera_width * 0.8 and length_y < camera_height * 0.8:
+            if x_min >= camera_width*0.1 and x_max <= camera_width*0.9 and y_min >= camera_height*0.1 and y_max <= camera_height*0.9:
+                #rospy.loginfo('{}-{}-{}-{}'.format((x_min, camera_width*0.1), (x_max, camera_width*0.9),  (y_min, camera_height*0.1), (y_max,  camera_height*0.9)))
                 return True
 
             new_z = uav.pos_z+self.fire_centralizing_altitude_addition
 
             position = [uav.pos_x, uav.pos_y, new_z, 0.0]
 
-            rospy.loginfo(f'Elevating to {new_z} m')
+            rospy.loginfo('Elevating to {:.0f} m'.format(new_z))
         else:
             real_x, real_y = uav.camera.estimate_3d_coordinates(center_pixel_x, center_pixel_y, uav.pos_z)
             #rospy.loginfo(f'real: {[real_x, real_y]}')
 
-            real_x *= self.fire_centralizing_distance_reduction
-            real_y *= self.fire_centralizing_distance_reduction
+            dist = helper.distance_2d(center_pixel_x, center_pixel_y, camera_center_x, camera_center_y)
+            max_dist = min(camera_center_x, camera_center_y)
+
+            reduction = min(max(self.fire_centralizing_max_reduction * dist / max_dist,
+                                self.fire_centralizing_min_reduction),
+                            self.fire_centralizing_max_reduction)
+
+            real_x *= reduction
+            real_y *= reduction
+
+            #rospy.loginfo('{:.2f} - {}<=>{}'.format(reduction, dist, max_dist))
 
             #rospy.loginfo(f'real: {[real_x, real_y]}')
 
@@ -231,6 +243,28 @@ class Swarm:
         center_x, center_y, radius = uav.camera.find_circle_of_fire()
 
         real_center_x, real_center_y = uav.camera.estimate_3d_coordinates(center_x, center_y, uav.pos_z)
+
+    def create_final_formation(self) -> None:
+        uav = self.uavs[self.center_drone-1]
+
+        x_min, y_min, x_max, y_max = uav.camera.find_dimensions_of_fire()
+
+        center_x = (x_min + x_max) / 2
+        center_y = (y_min + y_max) / 2
+
+        if x_max - x_min > y_max - y_min:
+            pos_x = x_max
+            pos_y = center_y
+        else:
+            pos_x = center_x
+            pos_y = y_max
+
+        real_x, real_y = uav.camera.estimate_3d_coordinates(pos_x, pos_y, uav.pos_z)
+
+        radius = helper.modulo_2d(real_x, real_y)
+        
+        self.create_circle_formation_around_uav(uav, radius, 30, uav.pos_z)
+
 
     def create_squate_formation(self, altitude: float) -> None:
         uav = self.uavs[self.center_drone-1]
@@ -278,14 +312,14 @@ class Swarm:
 
     def create_start_formation(self) -> None:
         
-        self.create_circle_formation(0, 0, 30)
+        self.create_circle_formation(0, 0, 30, 10)
 
-    def create_circle_formation_around_uav(self, uav_centered: UAV, altitude: float, centered_altitude: float) -> None:
+    def create_circle_formation_around_uav(self, uav_centered: UAV, radius: float, altitude: float, centered_altitude: float) -> None:
 
         pos_x = uav_centered.pos_x
         pos_y = uav_centered.pos_y
 
-        self.create_circle_formation(pos_x, pos_y, altitude, centered_altitude)
+        self.create_circle_formation(pos_x, pos_y, altitude, radius, centered_altitude)
 
     def create_patrolling_trajectory(self) -> None:
 
@@ -329,7 +363,7 @@ class Swarm:
                 pos_y = y + position[1]
                 self.trajectories[uav.node_name].append([pos_x, pos_y, 30, 0.0])
 
-    def create_circle_formation(self, center_x: float, center_y: float, altitude: float, centered_altitude: float = -1) -> None:
+    def create_circle_formation(self, center_x: float, center_y: float, altitude: float, radius: float, centered_altitude: float = -1) -> None:
         
         self.formation = []
 
@@ -343,8 +377,8 @@ class Swarm:
                 y = center_y
                 z = centered_altitude if centered_altitude > 0 else altitude
             else:
-                x = center_x + int(10 * np.cos(angle) * 100) / 100
-                y = center_y + int(10 * np.sin(angle) * 100) / 100
+                x = center_x + int(radius * np.cos(angle) * 100) / 100
+                y = center_y + int(radius * np.sin(angle) * 100) / 100
                 z = altitude
 
                 angle += dAngle
@@ -414,7 +448,7 @@ class Swarm:
         
         #for uav, position in zip(self.uavs, self.des_formation_coords):
         for uav, position in zip(self.uavs, self.formation):
-            if not uav.is_on_point(position):
+            if not uav.is_on_point(self.t0.secs, self.time_now.secs, position):
                 return False
 
         return True
