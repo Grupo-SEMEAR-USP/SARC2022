@@ -237,9 +237,7 @@ class UAV:
             append_here.append(data)
             self.aux_vars_dict['aux_var1'] = now_secs
     
-    def update_state(self) -> None:
-        
-        self.time_now = rospy.get_rostime()
+    def update_state(self, t0: float, time_now: float) -> None:
         
         self.camera.update_state()
         self.gps.update_state()
@@ -259,11 +257,13 @@ class UAV:
                                                                     min_area_threshold = self.min_area_threshold,
                                                                     img_to_save = self.camera.cv_img)
 
-        self.gps.save_xyz_position(rate_hz = 1.0)
+        self.gps.save_xyz_position(t0, time_now, rate_hz = 1.0)
        
                 
         #rospy.loginfo("uav position:\n%s", self.position)
 
+    def get_travel_points(self) -> dict:
+        return self.gps.get_travel_points()
     
     #TODO: Verificar a possibilidade de passar as funcoes de trajetoria 
     #para a classe uavGPS

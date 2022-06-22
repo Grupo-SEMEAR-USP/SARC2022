@@ -130,7 +130,7 @@ class uavGPS:
         return did_i_detect_fire
 
 
-    def save_xyz_position(self, rate_hz: float = 0.5) -> None:
+    def save_xyz_position(self, t0: float, time_now: float, rate_hz: float = 0.5) -> None:
         
         '''
 
@@ -143,8 +143,8 @@ class uavGPS:
             #! vec.append() (built in) é muito mais rápido que np.append(array, obj)
         '''
 
-        now_secs = self.time_now.secs
-        time_passed = now_secs - self.t0.secs
+        now_secs = time_now
+        time_passed = now_secs - t0
         epoch = int(1/rate_hz)
 
         if ((time_passed % epoch == 0) and now_secs != self.aux_vars_dict['var1']):            
@@ -156,8 +156,10 @@ class uavGPS:
 
             self.aux_vars_dict['var1'] = now_secs
 
-    def update_state(self) -> None:
+    def get_travel_points(self) -> dict: 
+        return self.previous_positions
 
-        self.time_now = rospy.get_rostime()
+    def update_state(self) -> None:
+        pass
     
     

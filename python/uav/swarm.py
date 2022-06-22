@@ -2,6 +2,7 @@
 
 from multiprocessing import Process
 from threading import Thread
+import pandas as pd
 import numpy as np
 import logging
 import rospy
@@ -77,7 +78,11 @@ class Swarm:
 
         self.countdown()
 
-        self.state = STARTED
+        self.state = -1
+        self.points_saved = False
+
+        self.create_patrolling_trajectory()
+        self.start_trajectory()
 
         self.t0 = rospy.get_rostime()
         self.time_now = rospy.get_rostime()
@@ -95,10 +100,38 @@ class Swarm:
         rospy.loginfo("1...")
         rospy.sleep(0.5)
 
+    def save_drones_travel_position(self) -> None:
+
+        self.points_saved = True
+
+        travels = {}
+        time = []
+
+        for i in range(self.swarm_size):
+            uav = self.uavs[i]
+
+            travel_points = uav.get_travel_points()
+
+            travels[f'uav{uav.uav_id}_x'] = travel_points['x']
+            travels[f'uav{uav.uav_id}_y'] = travel_points['y']
+            travels[f'uav{uav.uav_id}_z'] = travel_points['z']
+
+            if i == 0:
+                time = travel_points['time']
+
+        data_frame = pd.DataFrame(travels, index=time)
+        data_frame.to_csv('/data/travel_points.csv')
+
     def update(self):
 
+        self.time_now = rospy.get_rostime()
+
+        if self.time_now.secs - self.t0.secs > 60:
+            self.save_drones_travel_position()
+            quit()
+
         for uav in self.uavs:
-            uav.update_state()
+            uav.update_state(self.t0.secs, self.time_now.secs)
         
         if self.state == STARTED:
             self.create_start_formation()

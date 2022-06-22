@@ -30,8 +30,8 @@ class uavCamera:
         #https://mayavan95.medium.com/3d-position-estimation-of-a
         #-known-object-using-a-single-camera-7a82b37b326b
         #TODO: pegar os valores intrisics no arquivo .xacro da camera
-        self.focus_x = 277
-        self.focus_y = 277
+        self.focus_x = 540
+        self.focus_y = 620
         self.x_center = int(0.5 * self.img_width)
         self.y_center = int(0.5 * self.img_height)
                 
