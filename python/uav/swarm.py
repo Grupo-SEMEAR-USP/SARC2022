@@ -197,6 +197,13 @@ class Swarm:
 
         return False
 
+    def start_fire_combat(self):
+        uav = self.uavs[self.center_drone-1]
+
+        center_x, center_y, radius = uav.camera.find_circle_of_fire()
+
+        real_center_x, real_center_y = uav.camera.estimate_3d_coordinates(center_x, center_y, uav.pos_z)
+
     def create_squate_formation(self, altitude: float) -> None:
         uav = self.uavs[self.center_drone-1]
 
@@ -530,7 +537,7 @@ class Swarm:
         self.des_formation_name = 'scale'    
         
         
-    def fireCombat(self, R, position) -> None:
+    def fireCombat(self, R: float, position: list) -> None:
         
         # Setting inicial formation
         self.setFormation('circle', self.swarm_size, R, position)

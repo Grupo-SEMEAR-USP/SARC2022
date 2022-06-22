@@ -51,7 +51,7 @@ class UAV:
         self.uav_name = f'uav{uav_id}'
         self.node_name = f'node_{self.uav_name}'
 
-        self.camera = uavCamera(img_width = 720, img_height = 640,
+        self.camera = uavCamera(img_width = 720, img_height = 480,
                                 node_name = 'uavs_imgs',
                                 subscriber_name = f'/{self.uav_name}/rgbd_down/color/image_raw')
 
@@ -384,6 +384,6 @@ class UAV:
         y = position[1]
         z = position[2]
 
-        return is_clonse_enough(self.pos_x, x) and is_clonse_enough(self.pos_y, y) and is_clonse_enough(self.pos_z, z)
+        return helper.is_clonse_enough(self.pos_x, x) and helper.is_clonse_enough(self.pos_y, y) and helper.is_clonse_enough(self.pos_z, z)
      
 

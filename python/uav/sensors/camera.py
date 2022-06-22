@@ -154,6 +154,12 @@ class uavCamera:
 
         return max_area    
 
+    def find_circle_of_fire(self) -> tuple:
+
+        (x, y), radius = cv2.minEnclosingCircle(self.max_countour)
+        
+        return int(x), int(y), int(radius)
+
     def find_dimensions_of_fire(self) -> tuple:
         x_min, y_min, x_max, y_max = self.bounding_box_vertices(self.mask_red)
 
