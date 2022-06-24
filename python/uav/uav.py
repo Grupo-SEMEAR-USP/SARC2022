@@ -379,8 +379,9 @@ class UAV:
 
         self.land_there(msg_point_header, msg_point_reference)
 
-    def is_on_point(self, t0: float, time_now: float, position: list) -> bool:
-        self.update_state(t0, time_now)
+    def is_on_point(self, update:bool, t0: float, time_now: float, position: list) -> bool:
+        if update == 1:
+            self.update_state(t0, time_now)
         x = position[0]
         y = position[1]
         z = position[2]
