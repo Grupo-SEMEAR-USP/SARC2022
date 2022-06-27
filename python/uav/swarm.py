@@ -63,7 +63,7 @@ class Swarm:
         self.fire_centralizing_altitude_addition = 15
         self.fire_center_image_size_threshold = 30
 
-        self.base_position = [113, -121, 30]
+        self.base_position = [113.0, -121.0, 30.0, 0.0]
 
         rospy.init_node(name = node_name)
       
@@ -140,6 +140,7 @@ class Swarm:
             self.create_start_formation()
             self.goto_formation()
             self.state = GOING_TO_START
+            # self.returnBase()
 
         elif self.state == GOING_TO_START:
             if self.is_on_formation(0):
@@ -191,9 +192,9 @@ class Swarm:
             self.state = FIRE_FIGHTING
         
         elif self.state == FIRE_FIGHTING:
-            form = False
-            while form == False:
-                    form = self.is_on_formation(1)
+            # form = False
+            # while form == False:
+            #         form = self.is_on_formation(1)
             self.state = GOING_TO_BASE
 
         elif self.state == GOING_TO_BASE:
@@ -715,10 +716,7 @@ class Swarm:
         position = [uav.pos_x, uav.pos_y, 30] 
         self.setFormation('circle', 9, 10, position)
         self.applyFormation(1)
-        form = False
-        while form == False:
-                form = self.is_on_formation(1)
-        rospy.sleep(5)
+        rospy.sleep(20)
         rospy.loginfo("Going to base")      
         self.translateFormation(self.base_position)
         self.applyFormation(1)
@@ -736,4 +734,3 @@ class Swarm:
         rospy.loginfo("Iniciating landing")
         rospy.sleep(3)
         self.land_all_there()
-
