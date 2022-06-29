@@ -25,12 +25,13 @@ GOINT_TO_FIRE_FORMATION = 6
 FIRE_CENTRALIZED = 7
 FIRE_FIGHTING = 8
 GOING_TO_BASE = 9
+FINISHED = 10
 
 PI = np.pi
 
 class Swarm:
 
-    def __init__(self, swarm_size: int, node_name: str, center_drone: int = 1, spawn: bool = False):
+    def __init__(self, swarm_size: int, node_name: str, spawn: bool = False):
         
         '''
             -> swarm_size: number of uavs in the swarm
@@ -42,7 +43,6 @@ class Swarm:
 
         self.node_name = node_name
         self.swarm_size = swarm_size
-        self.center_drone = center_drone
 
         self.state = STARTING
         self.formation = []
@@ -63,15 +63,10 @@ class Swarm:
         self.fire_centralizing_altitude_addition = 15
         self.fire_center_image_size_threshold = 20
 
-        self.base_position = [113.0, -121.0, 30.0, 0.0]
+        self.base_position_x =  113
+        self.base_position_y = -121
 
         rospy.init_node(name = node_name)
-      
-
-
-        if center_drone < 1 or center_drone > swarm_size:
-            rospy.logerr('Drone central incorreto!')
-            return 
 
         if spawn:
             self.spawn_drones()
@@ -206,11 +201,12 @@ class Swarm:
         elif self.state == GOING_TO_BASE:
             rospy.loginfo("Returning to base")
             self.returnBase()
+            self.state = FINISHED
                     
 
     def centralize_on_fire(self) -> bool:
 
-        uav = self.uavs[self.center_drone-1]
+        uav = self.uavs[0]
 
         if self.last_sent_fire_position and not uav.is_on_point_for_time(self.t0.secs, self.time_now.secs, 2, self.last_sent_fire_position):
             return
@@ -267,14 +263,14 @@ class Swarm:
         return False
 
     def start_fire_combat(self):
-        uav = self.uavs[self.center_drone-1]
+        uav = self.uavs[0]
 
         center_x, center_y, radius = uav.camera.find_circle_of_fire()
 
         real_center_x, real_center_y = uav.camera.estimate_3d_coordinates(center_x, center_y, uav.pos_z)
 
     def create_final_formation(self) -> None:
-        uav = self.uavs[self.center_drone-1]
+        uav = self.uavs[0]
 
         x_min, y_min, x_max, y_max = uav.camera.find_dimensions_of_fire()
 
@@ -306,7 +302,7 @@ class Swarm:
 
 
     def create_squate_formation(self, altitude: float) -> None:
-        uav = self.uavs[self.center_drone-1]
+        uav = self.uavs[0]
 
         x_min, y_min, x_max, y_max = uav.camera.find_dimensions_of_fire()
 
@@ -411,7 +407,7 @@ class Swarm:
 
         for i in range(1, self.swarm_size+1):
 
-            if i == self.center_drone:
+            if i == 1:
                 self.center_x = center_x
                 self.center_y = center_y
                 self.center_z = centered_altitude if centered_altitude > 0 else altitude
@@ -521,7 +517,7 @@ class Swarm:
         failed_uavs = []
 
         for i in range(1, self.swarm_size+1):
-            if i == self.center_drone:
+            if i == 1:
                 x = y = 0
             else:
                 x = int(10 * np.cos(angle) * 100) / 100
@@ -540,7 +536,7 @@ class Swarm:
             rospy.loginfo(f'UAVs {failed_uavs} not spawned successfully')
 
 
-    def land_all_there(self) -> None:
+    def land_all(self) -> None:
         for uav in self.uavs:
             uav.land_now()
 
@@ -549,7 +545,7 @@ class Swarm:
     # Formations
     def setFormation(self, shape: str, N: int, L: float, position: list) -> None:
 
-        uav = self.uavs[self.center_drone-1]
+        uav = self.uavs[0]
         if (shape=='line'):
             coord = self.line(N, L)
         elif (shape=='circle'):
@@ -580,11 +576,6 @@ class Swarm:
             uav = self.uavs[i+1]
             position = self.des_formation_coords[i]
             uav.go_to_point(position)
-
-        if going_to_base == 1: 
-            uav = self.uavs[0]
-            base = self.base_position
-            uav.go_to_point(base)
 
         # i=1
         # for uav, position in zip(self.uavs, self.des_formation_coords):
@@ -738,27 +729,27 @@ class Swarm:
     def returnBase(self) -> None:
 
         rospy.loginfo("Iniciating new formation")
-        uav = self.uavs[self.center_drone-1]
-        position = [uav.pos_x, uav.pos_y, 30] 
-        self.setFormation('circle', 8, 10, position)
-        self.applyFormation(0)
-        while not self.is_on_formation(True):
-            pass
-        rospy.loginfo("Going to base")      
-        self.translateFormation(self.base_position)
-        self.applyFormation(1)
-        while not self.is_on_formation(True):
-            pass
-        while not self.uavs[0].is_on_point(1,self.t0.secs, self.time_now.secs,self.base_position):
-            pass
-        #rospy.sleep(3)
+
+        centered_uav = self.uavs[0]
+        another_uav = self.uavs[-1]
+
+        self.create_circle_formation(centered_uav.pos_x, centered_uav.pos_y, another_uav.pos_z, 10)
+        self.goto_formation()
+        
+        self.time_now = rospy.get_rostime()
+        while not self.is_on_formation(False):
+            self.time_now = rospy.get_rostime()
+        
+        rospy.loginfo("Going to base")
+
+        self.create_circle_formation(self.base_position_x, self.base_position_y, 20, 10)
+        self.goto_formation()
+
+        self.time_now = rospy.get_rostime()
+        while not self.is_on_formation(False):
+            self.time_now = rospy.get_rostime()
+
         rospy.loginfo("Base reached")
-        rospy.loginfo("Preparing formation to land")
-        #self.setFormation('circle', 9, 10, self.base_position)
-        #self.applyFormation(1)
-        #form = False
-        #while form == False:
-        #        form = self.is_on_formation(1)
-        rospy.loginfo("Iniciating landing")
-        rospy.sleep(3)
-        self.land_all_there()
+
+        rospy.loginfo("Landing")
+        self.land_all()
