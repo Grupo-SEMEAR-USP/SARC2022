@@ -104,6 +104,7 @@ class UAV:
 
         self.goto_point_seq = 0
         self.waiting_time = None
+        self.saving_data = False
 
         #Store auxiliary variables in 'aux_vars_dict'
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
@@ -165,6 +166,12 @@ class UAV:
             res = self.change_estimator("BARO")
 
     
+    def start_saving_data(self):
+        self.saving_data = True
+
+    def stop_saving_data(self):
+        self.saving_data = False
+
     def fire_detection_mapping( self,
                                 fire_pixel_area: float,
                                 min_area_threshold: float,
@@ -258,7 +265,8 @@ class UAV:
                                                                     min_area_threshold = self.min_area_threshold,
                                                                     img_to_save = self.camera.cv_img)
 
-        self.gps.save_xyz_position(t0, time_now, rate_hz = 1.0)
+        if self.saving_data:
+            self.gps.save_xyz_position(t0, time_now, rate_hz = 1.0)
        
                 
         #rospy.loginfo("uav position:\n%s", self.position)
@@ -379,7 +387,7 @@ class UAV:
 
         self.land_there(msg_point_header, msg_point_reference)
 
-    def is_on_point(self, update:bool, t0: float, time_now: float, position: list) -> bool:
+    def is_on_point(self, update: bool, t0: float, time_now: float, position: list) -> bool:
         if update == 1:
             self.update_state(t0, time_now)
         x = position[0]

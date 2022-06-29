@@ -3,7 +3,7 @@
 from multiprocessing import Process
 from threading import Thread
 from turtle import pos
-#import pandas as pd
+import pandas as pd
 import numpy as np
 import logging
 import rospy
@@ -61,7 +61,7 @@ class Swarm:
         self.fire_centralizing_min_reduction = 0.3
         self.fire_centralizing_max_reduction = 0.75
         self.fire_centralizing_altitude_addition = 15
-        self.fire_center_image_size_threshold = 30
+        self.fire_center_image_size_threshold = 20
 
         self.base_position = [113.0, -121.0, 30.0, 0.0]
 
@@ -123,6 +123,9 @@ class Swarm:
 
             if i == 0:
                 time = travel_points['time']
+
+        print(travels)
+        print(time)
 
         data_frame = pd.DataFrame(travels, index=time)
         data_frame.to_csv('data/travel_points.csv')
@@ -285,6 +288,7 @@ class Swarm:
         real_x, real_y = uav.camera.estimate_3d_coordinates(pos_x, pos_y, uav.pos_z)
 
         radius = helper.modulo_2d(real_x, real_y)
+        self.radius_last = radius
         
         position = [uav.pos_x, uav.pos_y, 25.0]
         rospy.loginfo("PRINT: Raio")
@@ -480,7 +484,10 @@ class Swarm:
             rospy.loginfo(f'UAVs {failed_uavs} did not sent to position')
 
     def is_on_formation(self, fire: bool) -> bool:
-        if fire==1: 
+        for uav in self.uavs:
+            uav.update_state(self.t0.secs, self.time_now.secs)
+
+        if fire: 
             i = 1
             for position in self.des_formation_coords:
                 uav = self.uavs[i]
@@ -492,7 +499,7 @@ class Swarm:
 
         else :
             for uav, position in zip(self.uavs, self.formation):
-                if not uav.is_on_point(0,self.t0.secs, self.time_now.secs, position):
+                if not uav.is_on_point(1,self.t0.secs, self.time_now.secs, position):
                     return False
 
             return True
@@ -553,6 +560,7 @@ class Swarm:
             raise Exception('Formation input doesn\'t match any built-in formations')
 
         self.des_formation_coords = coord
+        self.formation = self.des_formation_coords
 
         self.des_formation_pose = position
 
@@ -563,7 +571,7 @@ class Swarm:
         # Update formation name
         self.des_formation_name = shape
 
-    def applyFormation(self, going_to_base) -> None:
+    def applyFormation(self, going_to_base: int) -> None:
 
         for i in range(self.swarm_size-1):
             uav = self.uavs[i+1]
@@ -571,7 +579,7 @@ class Swarm:
             uav.go_to_point(position)
 
         if going_to_base == 1: 
-            uav = self.uavs[1]
+            uav = self.uavs[0]
             base = self.base_position
             uav.go_to_point(base)
 
@@ -613,7 +621,7 @@ class Swarm:
             xi = L*np.cos(idx*angle)
             yi = L*np.sin(idx*angle)
             point = [round(xc+xi,2), round(yc+yi,2), 30, 1]
-            coord = np.concatenate((coord,[point]))
+            coord = np.concatenate(([point],coord))
         logging.debug("Circle done\n")
         return coord
 
@@ -663,50 +671,65 @@ class Swarm:
         # Update formation pose (stays the same in this case)
         self.des_formation_pose = np.array([self.des_formation_pose[0], self.des_formation_pose[1], self.des_formation_pose[2]])
         self.des_formation_name = 'scale'    
-        
+
         
     def fireCombat(self) -> None:
+
+        self.time_now = rospy.get_rostime()
+
+        '''for uav in self.uavs:
+            uav.start_saving_data()'''
         
         # Iniciating rotation while scaling the formation
         rospy.loginfo("Iniciating rotation")
         rospy.loginfo("Focusing on peripheral area")
 
-        for i in range(1,6):
+        for _ in range(1,6):
             self.rotateFormation(0, 0, 30)
             self.scaleFormation(0.9, 0.9, 1)
             self.applyFormation(0)
-            form = False
-            while form == False:
-                    form = self.is_on_formation(1)
+
+            self.time_now = rospy.get_rostime()
+            while not self.is_on_formation(True):
+                self.time_now = rospy.get_rostime()
             #rospy.loginfo("Uavs are on point")
             #rospy.sleep(3)
     
         rospy.loginfo("Advancing to the center")
 
-        for i in range(1,3):
+        for _ in range(1,3):
             self.rotateFormation(0, 0, 20)
             self.scaleFormation(0.75, 0.75, 1)
             self.applyFormation(0)
-            form = False
-            while form == False:
-                    form = self.is_on_formation(1)
+            
+            self.time_now = rospy.get_rostime()
+            while not self.is_on_formation(True):
+                self.time_now = rospy.get_rostime()
             #rospy.loginfo("Uavs are on point")
             #rospy.sleep(3)
 
         rospy.loginfo("Final Phase: Going closer to the center")
 
-        for i in range(1,1):
+        for _ in range(1,1):
             self.rotateFormation(0, 0, 15)
             self.scaleFormation(0.6, 0.6, 1)
             self.applyFormation(0)
-            form = False
-            while form == False:
-                    form = self.is_on_formation(1)
+            
+            self.time_now = rospy.get_rostime()
+            while not self.is_on_formation(True):
+                self.time_now = rospy.get_rostime()
             #rospy.loginfo("Uavs are on point")
             #rospy.sleep(3)
 
         rospy.loginfo("Firefighting was a success")
-        rospy.sleep(5)
+        
+
+        '''for uav in self.uavs:
+            uav.stop_saving_data()
+
+        self.save_drones_travel_position()'''
+
+        rospy.sleep(2)
 
 
     def returnBase(self) -> None:
@@ -714,23 +737,25 @@ class Swarm:
         rospy.loginfo("Iniciating new formation")
         uav = self.uavs[self.center_drone-1]
         position = [uav.pos_x, uav.pos_y, 30] 
-        self.setFormation('circle', 9, 10, position)
-        self.applyFormation(1)
-        rospy.sleep(20)
+        self.setFormation('circle', 8, 10, position)
+        self.applyFormation(0)
+        while not self.is_on_formation(True):
+            pass
         rospy.loginfo("Going to base")      
         self.translateFormation(self.base_position)
         self.applyFormation(1)
-        form = False
-        while form == False:
-                form = self.is_on_formation(1)
-        rospy.sleep(3)
+        while not self.is_on_formation(True):
+            pass
+        while not self.uavs[0].is_on_point(1,self.t0.secs, self.time_now.secs,self.base_position):
+            pass
+        #rospy.sleep(3)
         rospy.loginfo("Base reached")
         rospy.loginfo("Preparing formation to land")
-        self.setFormation('circle', 9, 10, self.base_position)
-        self.applyFormation(1)
-        form = False
-        while form == False:
-                form = self.is_on_formation(1)
+        #self.setFormation('circle', 9, 10, self.base_position)
+        #self.applyFormation(1)
+        #form = False
+        #while form == False:
+        #        form = self.is_on_formation(1)
         rospy.loginfo("Iniciating landing")
         rospy.sleep(3)
         self.land_all_there()
