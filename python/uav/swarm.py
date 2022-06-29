@@ -124,8 +124,8 @@ class Swarm:
             if i == 0:
                 time = travel_points['time']
 
-        print(travels)
-        print(time)
+        '''print(travels)
+        print(time)'''
 
         data_frame = pd.DataFrame(travels, index=time)
         data_frame.to_csv('data/travel_points.csv')
@@ -152,6 +152,9 @@ class Swarm:
                 self.create_patrolling_trajectory()
                 self.start_trajectory()
                 self.state = PATROLLING
+
+                '''for uav in self.uavs:
+                    uav.start_saving_data()'''
 
                 rospy.loginfo("Starting Patrolling...")
 
