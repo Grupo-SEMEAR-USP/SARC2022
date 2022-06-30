@@ -4,16 +4,13 @@
 from sensors.camera import uavCamera
 from sensors.gps import uavGPS
 
-# Importing Functions
+# Importing Python Files
 import helper
 
 # Import Libraries
-import pandas as pd
 import numpy as np
 import logging
 import rospy
-import cv2
-import os
 
 # Importing Ros Messages
 from mrs_msgs.msg import Path, Reference, VelocityReferenceStamped, VelocityReference
@@ -26,22 +23,6 @@ from mrs_msgs.srv import ReferenceStampedSrvResponse, PathSrvResponse
 from std_srvs.srv import Trigger
 from std_srvs.srv import TriggerResponse
 
-
-
-'''
-    A classe UAV deve facilitar o o gerenciamento dos sistemas que compoe cada 
-    drone (visao, gps, etc). Tambem deve permitir construir o swarm de forma 
-    mais facil.
-
-'''
-
-#TODO:
-'''
-    #! Redistribuir as funcoes entre os arquivos uav.py e sensors.
-    -> Funcoes relacionadas a posicao e trajetoria em uav.GPS
-    -> funcoes relacionadas a imagem em uav.Camera
-
-'''
 
 class UAV:
 
@@ -58,9 +39,6 @@ class UAV:
 
         self.gps = uavGPS(  node_name = 'odom_msgs',
                             subscriber_name = f'/{self.uav_name}/odometry/odom_gps')
-        
-        #TODO: add uma funcao que estabeleca os modos de voo
-        self.current_flight_mode = None
 
         self.position = None
         self.pos_x = None
@@ -96,29 +74,22 @@ class UAV:
         if start_init:
             rospy.init_node(name = self.node_name)
             self.t0 = rospy.get_rostime()
-            self.time_now = rospy.get_rostime()
-        ##Add self.configure na main do script ao inves de coloca-lo e __init__
-        # self.configure()
-
-        
+            self.time_now = rospy.get_rostime()      
 
         self.goto_point_seq = 0
         self.waiting_time = None
         self.saving_data = False
 
-        #Store auxiliary variables in 'aux_vars_dict'
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
 
-        rospy.loginfo(f'UAV{self.uav_id} INIT SUCCEEDED')
+        #rospy.loginfo(f'UAV{self.uav_id} INIT SUCCEEDED')
+        logging.debug(f'UAV{self.uav_id} INIT SUCCEEDED')
 
-    def configure(self):
+    def configure(self) -> None:
         
-        logging.debug("Waiting MRS services [...]")
-        rospy.loginfo("Waiting MRS services [...]")
+        logging.debug(f"Waiting MRS services UAV{self.uav_id} [...]")
+        rospy.loginfo(f"Waiting MRS services UAV{self.uav_id} [...]")
 
-        ####* https://ctu-mrs.github.io/docs/system/uav_ros_interface.html
-
-        #!Obs:
         '''
             Tem que testar se essa é a estrutura correta de usar os serviços, 
             colocando todos na funcao configure().
@@ -166,84 +137,11 @@ class UAV:
             res = self.change_estimator("BARO")
 
     
-    def start_saving_data(self):
+    def start_saving_data(self) -> None:
         self.saving_data = True
 
-    def stop_saving_data(self):
+    def stop_saving_data(self) -> None:
         self.saving_data = False
-
-    def fire_detection_mapping( self,
-                                fire_pixel_area: float,
-                                min_area_threshold: float,
-                                img_to_save: np.array):
-
-        #! Essa funcao vai passar para a classe uavGPS                        
-        ''' 
-            If an uav detected fire, save its state (the image, fire area, position, time, etc)
-        '''
-        self.did_i_detect_fire = fire_pixel_area and (fire_pixel_area > min_area_threshold)
-
-        if self.did_i_detect_fire:
-
-            self.i_did_detect_fire['fire_img'].append(img_to_save)
-            self.i_did_detect_fire['fire_area'].append(fire_pixel_area)
-            self.i_did_detect_fire['x'].append(self.pos_x)
-            self.i_did_detect_fire['y'].append(self.pos_y)
-            self.i_did_detect_fire['z'].append(self.pos_z)
-            self.i_did_detect_fire['time'].append(rospy.get_rostime())
-        
-        else:
-            pass
-
-    def save_xyz_position(self, rate_hz: float = 0.5) -> None:
-        
-        #! Essa funcao vai passar para a classe uavGPS
-        '''
-
-            Salva data em append_here a cada 1/rate_hz secs.
-            Ex: salva self.position a cada 1s para mapear a trajetoria do drone
-
-            Obs: rate_hz só pode ser tal que 1/rate_hz é inteiro diferente
-            de zero. Logo, num_data/secs >= 1.
-
-            #! vec.append() (built in) é muito mais rápido que np.append(array, obj)
-        '''
-
-        now_secs = self.time_now.secs
-        time_passed = now_secs - self.t0.secs
-        epoch = int(1/rate_hz)
-
-        if ((time_passed % epoch == 0) and now_secs != self.aux_vars_dict['aux_var1']):            
-            
-            self.previous_positions['x'].append(self.pos_x)
-            self.previous_positions['y'].append(self.pos_y)
-            self.previous_positions['z'].append(self.pos_z)
-            self.previous_positions['time'].append(time_passed)
-
-            self.aux_vars_dict['aux_var1'] = now_secs
-
-    
-    def save_data(self, data: object, append_here: list, rate_hz: float = 0.5) -> None:
-        
-        '''
-
-            Salva data em append_here a cada 1/rate_hz secs.
-            Ex: salva self.position a cada 1s para mapear a trajetoria do drone
-
-            Obs: rate_hz só pode ser tal que 1/rate_hz é inteiro diferente
-            de zero. Logo, num_data/secs >= 1.
-
-            #! vec.append() (built in) é muito mais rápido que np.append(array, obj)
-        '''
-        
-        now_secs = self.time_now.secs
-        time_passed = now_secs - self.t0.secs
-        epoch = int(1/rate_hz)
-
-        if ((time_passed % epoch == 0) and now_secs != self.aux_vars_dict['aux_var1']):
-            
-            append_here.append(data)
-            self.aux_vars_dict['aux_var1'] = now_secs
     
     def update_state(self, t0: float, time_now: float) -> None:
         
@@ -258,18 +156,13 @@ class UAV:
         if self.uav_id == 1:
             self.camera.display_img(view_red=True)
         
-
-        #TODO: add uma funcao na classe uavCamera que retorne a area do fogo 
-        #detectado. Esta area é input da funcao fire_detection_tracker(
         self.did_i_detect_fire = self.gps.fire_detection_mapping(   fire_pixel_area = self.camera.max_fire_area,
                                                                     min_area_threshold = self.min_area_threshold,
                                                                     img_to_save = self.camera.cv_img)
 
         if self.saving_data:
             self.gps.save_xyz_position(t0, time_now, rate_hz = 1.0)
-       
-                
-        #rospy.loginfo("uav position:\n%s", self.position)
+
 
     def get_travel_points(self) -> dict:
         return self.gps.get_travel_points()
@@ -309,10 +202,6 @@ class UAV:
             ref.heading = point[3]
 
             msg_trajectory.points.append(ref)
-
-        #res = self.path(msg_trajectory)
-
-        #print(f'Trajectory Generation\nSuccess: {res.success}\nMessage: {res.message}')
 
         return self.path(msg_trajectory)
 
@@ -405,12 +294,10 @@ class UAV:
         if helper.is_close_enough(self.pos_x, x) and helper.is_close_enough(self.pos_y, y) and helper.is_close_enough(self.pos_z, z):
             if not self.waiting_time:
                 self.waiting_time = time_now
-                #rospy.loginfo(f"Waiting for {time} seconds")
 
             if time_now - self.waiting_time < time:
                 return False
             else:
-                #rospy.loginfo(f"Waited {time} seconds")
                 self.waiting_time = None
                 return True
 

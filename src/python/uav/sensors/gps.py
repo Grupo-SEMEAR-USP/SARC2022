@@ -1,6 +1,12 @@
-import rospy
+#!/usr/bin/env python3
+
+# Import Libraries
 import numpy as np
+import rospy
+
+# Importing Ros Messages
 from nav_msgs.msg import Odometry
+
 
 class uavGPS:
 
@@ -17,7 +23,6 @@ class uavGPS:
         self.pos_z = None
         self.heading = None
 
-        # rospy.init_node(name = node_name, anonymous=True) 
         self.sub = rospy.Subscriber(name = subscriber_name,
                                     data_class = Odometry,
                                     callback = self.read_odometry_msgs)
@@ -37,13 +42,7 @@ class uavGPS:
                                             'y': [],
                                             'z': []}
 
-        #store random data in 'aux_vars_dict' if needed
         self.aux_vars_dict: dict = {'var1': np.pi}
-        
-        #*Só é possível usar rospy.get_rostime()
-        #*se algum init_node() tiver sido chamado anteriormente
-        # self.t0 = rospy.get_rostime()
-        # self.time_now = rospy.get_rostime()
     
     
     def read_odometry_msgs(self, odom_msg: Odometry) -> None:
@@ -57,53 +56,6 @@ class uavGPS:
 
         self.state = [self.pos_x, self.pos_y, self.pos_z, self.heading]
 
-
-    @staticmethod
-    def circle_equation(angle_deg: np.ndarray or float,
-                        x_center: float,
-                        y_center: float,
-                        radius: float) -> np.ndarray or float:
-        '''
-            x = R * cos(theta) + x0
-            y = R * sin(theta) + y0
-        '''
-
-        angle_rad = np.pi * angle_deg/180.0
-        
-        #xOy reference (x0, y0) = (0, 0)
-        x0_values = radius * np.cos(angle_rad)
-        y0_values = radius * np.sin(angle_rad)
-
-        #xO'y reference (x0', y0') = (x_center, y_center)
-        #xOy -> xO'y
-        x_values = x0_values + x_center
-        y_values = y0_values + y_center
-
-        return x_values, y_values
-
-
-    
-    def circular_trajectory_pts(self,
-                                x_center: int or float,
-                                y_center: int or float,
-                                radius: int or float,
-                                num_of_pts: int = 4) -> float or np.ndarray:
-
-        ''' 
-            Equally spaced points of a circular trajectory, given a number of
-            points.
-        '''
-
-        step = 360/num_of_pts
-        angles_deg = np.array([i*step for i in range(num_of_pts)])
-        
-        xs_of_circ_trajectory, ys_of_circ_trajectory = self.circle_equation( angle_deg = angles_deg,
-                                                                            x_center = x_center,
-                                                                            y_center = y_center,
-                                                                            radius = radius)
-        return xs_of_circ_trajectory, ys_of_circ_trajectory
-
-
     def fire_detection_mapping( self,
                                 fire_pixel_area: float,
                                 min_area_threshold: float,
@@ -111,8 +63,6 @@ class uavGPS:
         ''' 
             If an uav detected fire, save its state (the image, fire area, position, time, etc)
         '''
-        #Fire detection flag
-        #!Certeza que retorna booleano?
         did_i_detect_fire = fire_pixel_area and (fire_pixel_area > min_area_threshold) 
 
         if did_i_detect_fire:
@@ -128,7 +78,6 @@ class uavGPS:
             pass
 
         return did_i_detect_fire
-
 
     def save_xyz_position(self, t0: float, time_now: float, rate_hz: float = 0.5) -> None:
         
@@ -160,6 +109,4 @@ class uavGPS:
         return self.previous_positions
 
     def update_state(self) -> None:
-        pass
-    
-    
+        pass    

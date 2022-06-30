@@ -1,6 +1,11 @@
+#!/usr/bin/python3
+
+# Importing Objects
 from swarm import Swarm
 
+# Import Libraries
 import rospy
+
 
 def main():
     
