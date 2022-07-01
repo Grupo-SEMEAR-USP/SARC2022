@@ -23,8 +23,11 @@ Using the state machine, the approach to fire fighting was done through the step
 During the patrolling state, all aircraft, including the central drone, are sent to different quadrants of the region in order to search for the fire source. In each quadrant, the drones will display a Hamiltonian cycle in order to cover their quadrant while looking for the presence of fire in their docked camera. Below is a representation of the patrol trajectory of each aircraft, as well as a representation of the movement of each one within its quadrant.
 
 <p align="center">
-  <img width="400" src="./assets/patrol_trajectory.png">
-  <img width="400" src="./assets/patrolling_moviment.gif">
+  <img width="500" src="./assets/patrol_trajectory.png">
+</p>
+	
+<p>
+  <img width="500" src="./assets/patrolling_moviment.gif">
 </p>
 
 Once an aircraft detects fire on its camera, the swarm is sent into position in a circular formation, featuring the central drone at its center. It is worth mentioning that the detection of all the fire carried out in this simulation is being done in a simplified way of what would be presented in a real application, being carried out from a mask applied to the image received by the camera as shown in the images below.
@@ -41,7 +44,7 @@ During fire centering, the real drone is responsible for constantly viewing the 
 The image below shows the simulation moment in which the fire is centered. It is possible to check the fully visible and centralized fire region in the mask shown on the right.
 
 <p align="center">
-  <img width="500" src="./assets/fire_centralized.png">
+  <img width="800" src="./assets/fire_centralized.png">
 </p>
 
 ### Fire Combat
