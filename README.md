@@ -8,6 +8,12 @@ In the modern world, working with a swarm of drones is gaining increasing promin
   <img width="800" src="./assets/simulation_starting.gif">
 </p>
 
+<p align="center">
+  <img width="800" src="./assets/simulation_starting.mp4">
+</p>
+
+![teste](./assets/simulation_starting.mp4)
+
 ## How it works
 
 The NoFire Squad works with the use of a swarm of 9 independent uavs that communicate with a central node, which performs all the definitions of positions and trajectories for each of the drones. In addition, one of these drones, determined as the central drone, acts only in the supervision and dimensional definition of the area affected by the fire, while the other aircraft are responsible for direct firefighting. In addition, the logic addressed for fighting the fire was to use a state machine for the swarm, in order to differentiate the decisions made according to the current state.
