@@ -34,7 +34,7 @@ Once an aircraft detects fire on its camera, the swarm is sent into position in 
 
 <p align="center">
   <img width="350" src="./assets/view.png">
-  <img width="350" src="./assets/view_maks.png">
+  <img width="350" src="./assets/view_mask.png">
 </p>
 
 ### Centering Fire
