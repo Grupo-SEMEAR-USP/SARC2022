@@ -92,14 +92,12 @@ To make this change, it is necessary to change line 1855 in the *component_snipp
 - Before
 
 ```html
-
 <far>100</far>
 ```
 
 - After
 
 ```html
-
 <far>150</far>
 ```
 
