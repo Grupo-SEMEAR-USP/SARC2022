@@ -10,7 +10,7 @@ In the modern world, working with a swarm of drones is gaining increasing promin
 
 ## Simulation Video
 
-In order to enable the visualization of the project without the need to compile the code developed here, a YouTube video showing a recording of the simulation performed is shown below. It is worth mentioning that the simulation time differs from the real time, since there are delays due to the computation of the environment. In this way, the video is accelerated in order to present the real time as the simulated time (6:40 minutes).
+In order to enable the visualization of the project without the need to compile the code developed here, a YouTube [video](https://www.youtube.com/watch?v=N1TAa1z4Fp0) showing a recording of the simulation performed is shown below. It is worth mentioning that the simulation time differs from the real time, since there are delays due to the computation of the environment. In this way, the video is accelerated in order to present the real time as the simulated time (6:40 minutes).
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=N1TAa1z4Fp0" title="Final Video">
