@@ -30,6 +30,17 @@ During the patrolling state, all aircraft, including the central drone, are sent
   <img width="500" src="./assets/patrolling_moviment.gif">
 </p>
 
+Once an aircraft detects fire on its camera, the swarm is sent into position in a circular formation, featuring the central drone at its center. It is worth mentioning that the detection of all the fire carried out in this simulation is being done in a simplified way of what would be presented in a real application, being carried out from a mask applied to the image received by the camera as shown in the images below.
+
+<p align="center">
+  <img width="350" src="./assets/view.png">
+  <img width="350" src="./assets/view_maks.png">
+</p>
+
+### Centering Fire
+
+
+
 ## Getting Started
 
 This github is presented as a ros package, using as a base the package presented by SARC ([github](https://github.com/2nd-sarc-barinet-aerospace-competition/sarc_environment)), in order to allow a single installation of the environment proposed by them and the implementation discussed above.
