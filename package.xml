@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>no_fire_squad</name>
+  <version>0.1.2</version>
+  <description> Environment of noFire Squad on SARC competition
+  </description>
+  <maintainer email="ferreiraraul99@usp.br">Raul Cotrim Ferreira</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>roslaunch</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>numpy</exec_depend>
+  <exec_depend>logging</exec_depend>
+  <exec_depend>pandas</exec_depend>
+  <exec_depend>opencv-python</exec_depend>
+  <exec_depend>cv2</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <export>
+    <gazebo_ros gazebo_media_path="${prefix}" />
+    <gazebo_ros gazebo_model_path="${prefix}/world_models:${prefix}/models" />
+  </export>
+</package>
