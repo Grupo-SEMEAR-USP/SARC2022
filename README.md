@@ -5,7 +5,7 @@
 In the modern world, working with a swarm of drones is gaining increasing prominence in research and  academic work due to its great potential for applicability. However, even though it is becoming more  common, it still presents a high level of complexity due to the challenges of controlling and coordinating  the movements of several UAVs at once. This project aims to use the swarm aproach to create a solution to a forest fight scenario developed by SARC (*Swedish Aerospace Research Center*), which will be simulated using the Gazebo environment and ROS services.
 
 <p align="center">
-  <img width="500" height="281" src="./assets/simulation_starting.gif">
+  <img width="500" src="./assets/simulation_starting.gif">
 </p>
 
 ## How it works
@@ -23,11 +23,11 @@ Using the state machine, the approach to fire fighting was done through the step
 During the patrolling state, all aircraft, including the central drone, are sent to different quadrants of the region in order to search for the fire source. In each quadrant, the drones will display a Hamiltonian cycle in order to cover their quadrant while looking for the presence of fire in their docked camera. Below is a representation of the patrol trajectory of each aircraft, as well as a representation of the movement of each one within its quadrant.
 
 <p align="center">
-  <img width="500" height="281" src="./assets/patrol_trajectory.png">
+  <img width="500" src="./assets/patrol_trajectory.png">
 </p>
 
 <p align="center">
-  <img width="500" height="281" src="./assets/patrolling_moviment.gif">
+  <img width="500" src="./assets/patrolling_moviment.gif">
 </p>
 
 ## Getting Started
