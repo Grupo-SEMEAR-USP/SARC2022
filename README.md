@@ -81,7 +81,7 @@ This github is presented as a ros package, using as a base the package presented
 -   Installing MRS: at the link [https://github.com/ctu-mrs/mrs_uav_system](https://github.com/ctu-mrs/mrs_uav_system) , go to the Installation section and choose one of the installation options, any of them will work, we recommend that you use the local option, that you just run the script and everything is automatically downloaded.
 -   To use this package, simply clone this repository into a Catkin workspace and build. Since you are using the MRS system, simply clone this package into the "mrs_workspace" folder that is in "home".
 
-### Executing simulation
+### Executing
 
 #### Configurations
 
@@ -92,12 +92,14 @@ To make this change, it is necessary to change line 1855 in the *component_snipp
 - Before
 
 ```html
+
 <far>100</far>
 ```
 
 - After
 
-```
+```html
+
 <far>150</far>
 ```
 
@@ -115,9 +117,9 @@ In order to improve the user experience, the Tmux terminal multiplexer was used 
 
 ### NoFire Squad Team Members
 
-- Daniel Yukio Miguita: [Github](), [Linkedin]()
+- Daniel Yukio Miguita: [Github](https://github.com/miguita), [Linkedin](http://www.linkedin.com/in/daniel-miguita)
 - Guilherme Barela de Castro: [Github](), [Linkedin]()
-- Guilherme Barros Villela: [Github](), [Linkedin]()
-- Lucas Harim Gomes Cavalcanti: [Github](), [Linkedin]()
-- Matheus Della Rocca Mastins: [Github](), [Linkedin]()
-- Raul Cotrim Ferreira: [Github](), [Linkedin]()
+- Guilherme Barros Villela: [Github](https://github.com/Villela-G), [Linkedin](https://www.linkedin.com/in/guilherme-villela)
+- Lucas Harim Gomes Cavalcanti: [Github](https://github.com/LucasHarim), [Linkedin](https://www.linkedin.com/in/lucas-harim/)
+- Matheus Della Rocca Mastins: [Github](https://github.com/MatheusDrm), [Linkedin](https://www.linkedin.com/in/matheus-martins-9aba09212/)
+- Raul Cotrim Ferreira: [Github](https://github.com/raul00cf), [Linkedin](https://www.linkedin.com/in/raul-cotrim-a86420163/)
