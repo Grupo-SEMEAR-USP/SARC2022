@@ -5,7 +5,7 @@
 In the modern world, working with a swarm of drones is gaining increasing prominence in research and  academic work due to its great potential for applicability. However, even though it is becoming more  common, it still presents a high level of complexity due to the challenges of controlling and coordinating  the movements of several UAVs at once. This project aims to use the swarm aproach to create a solution to a forest fight scenario developed by SARC (*Swedish Aerospace Research Center*), which will be simulated using the Gazebo environment and ROS services.
 
 <p align="center">
-  <img width="500" src="./assets/simulation_starting.gif">
+  <img width="800" src="./assets/simulation_starting.gif">
 </p>
 
 ## How it works
@@ -57,8 +57,10 @@ After the centralization of fire, the other 8 aircraft are sent to a circular fo
 Once the firefight is over, all aircraft are directed to the predetermined landing region. In order to maintain organization, aircraft move in a circular formation and land in the same formation. In the images below it is possible to verify the joint movement of the drones together with the joint landing.
 
 <p align="center">
-  <img width="400" src="./assets/returning_base.gif">
-  <img width="400" src="./assets/landing.gif">
+  <img width="800" src="./assets/returning_base.gif">
+</p>
+<p>
+  <img width="800" src="./assets/landing.gif">
 </p>
 
 ## Getting Started
