@@ -13,7 +13,7 @@ In the modern world, working with a swarm of drones is gaining increasing promin
 The NoFire Squad works with the use of a swarm of 9 independent uavs that communicate with a central node, which performs all the definitions of positions and trajectories for each of the drones. In addition, one of these drones, determined as the central drone, acts only in the supervision and dimensional definition of the area affected by the fire, while the other aircraft are responsible for direct firefighting. In addition, the logic addressed for fighting the fire was to use a state machine for the swarm, in order to differentiate the decisions made according to the current state.
 
 <p align="center">
-  <img width="700" src="./assets/State_machine.png">
+  <img width="800" src="./assets/State_machine.png">
 </p>
 
 ## Getting Started
@@ -30,7 +30,24 @@ This github is presented as a ros package, using as a base the package presented
 
 ### Installing
 
+-   Installing MRS: at the link [https://github.com/ctu-mrs/mrs_uav_system](https://github.com/ctu-mrs/mrs_uav_system) , go to the Installation section and choose one of the installation options, any of them will work, we recommend that you use the local option, that you just run the script and everything is automatically downloaded.
+-   To use this package, simply clone this repository into a Catkin workspace and build. Since you are using the MRS system, simply clone this package into the "mrs_workspace" folder that is in "home".
+
 ### Executing simulation
+
+In order to improve the user experience, the Tmux terminal multiplexer was used to start the entire simulation from a single terminal command. Performing the command, multiple terminals are initialized in order to start the ROS environment, open the gazebo environment, spawn the aircraft and start the algorithm presented here.
+
+- If you already have a ROS environment initialized, you can run the command in terminal
+
+```
+rosrun no_fire_squad start.sh
+```
+
+- Otherwise, go to the folder start and running start.sh, using in the terminal
+
+```
+./start.sh
+```
 
 ## Conclusion
 
