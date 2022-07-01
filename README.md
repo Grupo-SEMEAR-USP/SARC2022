@@ -33,13 +33,36 @@ During the patrolling state, all aircraft, including the central drone, are sent
 Once an aircraft detects fire on its camera, the swarm is sent into position in a circular formation, featuring the central drone at its center. It is worth mentioning that the detection of all the fire carried out in this simulation is being done in a simplified way of what would be presented in a real application, being carried out from a mask applied to the image received by the camera as shown in the images below.
 
 <p align="center">
-  <img width="350" src="./assets/view.png">
-  <img width="350" src="./assets/view_mask.png">
+  <img width="400" src="./assets/view.jpeg">
+  <img width="400" src="./assets/view_mask.png">
 </p>
 
 ### Centering Fire
 
+During fire centering, the real drone is responsible for constantly viewing the fire on its camera while estimating the three-dimensional position of the center of the region shown on the mask in order to move to the determined position. Also, when the area is centered in the camera but it is not possible to verify a contour without fire, the aircraft will go to a higher altitude, in order to visualize a larger area. This process continues until the entire fire area is visualized and centered on the camera, confirming the centering of the region by the aircraft. In the image below, 
 
+The image below shows the simulation moment in which the fire is centered. It is possible to check the fully visible and centralized fire region in the mask shown on the right.
+
+<p align="center">
+  <img width="500" src="./assets/fire_centralized.png">
+</p>
+
+### Fire Combat
+
+After the centralization of fire, the other 8 aircraft are sent to a circular formation around the area visualized by the central drone in order to start combat. In order to contain the spread of fire, the formation starts combat in the outer region while moving towards the center in a rotational way in an attempt to cover a greater area. This rotational movement can be visualized below.
+
+<p align="center">
+  <img width="500" src="./assets/fire_combat.gif">
+</p>
+
+### Return to Base
+
+Once the firefight is over, all aircraft are directed to the predetermined landing region. In order to maintain organization, aircraft move in a circular formation and land in the same formation. In the images below it is possible to verify the joint movement of the drones together with the joint landing.
+
+<p align="center">
+  <img width="400" src="./assets/returning_base.gif">
+  <img width="400" src="./assets/landing.gif">
+</p>
 
 ## Getting Started
 
@@ -59,6 +82,26 @@ This github is presented as a ros package, using as a base the package presented
 -   To use this package, simply clone this repository into a Catkin workspace and build. Since you are using the MRS system, simply clone this package into the "mrs_workspace" folder that is in "home".
 
 ### Executing simulation
+
+#### Configurations
+
+In order to carry out the simulation without errors, a configuration must be carried out within the MRS system. Once we use a camera within a simulated environment, an important parameter for the optimization of the implementation is the presence of a maximum detection distance, since, unlike reality, a simulation cannot simulate light rays reaching the sensors of the camera. In this way, since the central drone can reach an altitude greater than 100m, the centralization of the fire area would be impossible due to the maximum distance of 100m for camera detection. Thus, it is necessary to increase this maximum distance, in order to allow the camera to be read in the final steps of fire centering.
+
+To make this change, it is necessary to change line 1855 in the *component_snippets.xacro* file. This file is found in the path "~/mrs_workspace/src/simulation/ros_packages/mrs_simulation/models/mrs_robots_description/urdf". This change must be made as shown below.
+
+- Before
+
+```html
+<far>100</far>
+```
+
+- After
+
+```
+<far>150</far>
+```
+
+#### Running the simulation
 
 In order to improve the user experience, the Tmux terminal multiplexer was used to start the entire simulation from a single terminal command. Performing the command, multiple terminals are initialized in order to start the ROS environment, open the gazebo environment, spawn the aircraft and start the algorithm presented here.
 
