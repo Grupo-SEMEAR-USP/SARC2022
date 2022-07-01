@@ -12,13 +12,7 @@ In the modern world, working with a swarm of drones is gaining increasing promin
 
 In order to enable the visualization of the project without the need to compile the code developed here, a YouTube video showing a recording of the simulation performed is shown below. It is worth mentioning that the simulation time differs from the real time, since there are delays due to the computation of the environment. In this way, the video is accelerated in order to present the real time as the simulated time (6:40 minutes).
 
-[![Final Video](https://www.youtube.com/watch?v=N1TAa1z4Fp0/0.jpg)](https://www.youtube.com/watch?v=N1TAa1z4Fp0)
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=N1TAa1z4Fp0" title="Link Title">
-	  <img img width="500" height="281" src="https://www.youtube.com/watch?v=N1TAa1z4Fp0/0.jpg"/>
-  </a>
-</p>
+[![Final Video](https://img.youtube.com/vi/N1TAa1z4Fp0/maxresdefault.jpg)](https://www.youtube.com/watch?v=N1TAa1z4Fp0)
 
 ## How it works
 
@@ -134,7 +128,7 @@ For our group, the development presented here demonstrates a very satisfactory r
 
 Finally, we would like to thank SARC for the opportunity to participate in this competition and for all the support we have had throughout these months.
 
-### NoFire Squad Team Members
+## NoFire Squad Team Members
 
 - Daniel Yukio Miguita: [Github](https://github.com/miguita), [Linkedin](http://www.linkedin.com/in/daniel-miguita)
 - Guilherme Barela de Castro: [Github](https://github.com/guilherminhobc), [Linkedin](https://www.linkedin.com/in/guilherme-barela-de-castro-57707720b/)
