@@ -26,7 +26,7 @@ During the patrolling state, all aircraft, including the central drone, are sent
   <img width="500" src="./assets/patrol_trajectory.png">
 </p>
 	
-<p>
+<p align="center">
   <img width="500" src="./assets/patrolling_moviment.gif">
 </p>
 
@@ -62,7 +62,8 @@ Once the firefight is over, all aircraft are directed to the predetermined landi
 <p align="center">
   <img width="800" src="./assets/returning_base.gif">
 </p>
-<p>
+
+<p align="center">
   <img width="800" src="./assets/landing.gif">
 </p>
 
