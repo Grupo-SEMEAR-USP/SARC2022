@@ -466,6 +466,8 @@ class Swarm:
     def fireCombat(self) -> None:
 
         self.time_now = rospy.get_rostime()
+
+        rospy.loginfo("Initiating the release of fire-retardant liquid")
         
         rospy.loginfo("Focusing on peripheral area")
 
@@ -498,6 +500,8 @@ class Swarm:
                 pass
 
         rospy.loginfo("Firefighting was a success")
+
+        rospy.loginfo("Finishing the release of fire retardant liquid")
 
         rospy.sleep(2)
 

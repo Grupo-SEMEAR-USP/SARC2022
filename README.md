@@ -2,17 +2,23 @@
 
 ## Introduction
 
-In the modern world, working with a swarm of drones is gaining increasing prominence in research and  academic work due to its great potential for applicability. However, even though it is becoming more  common, it still presents a high level of complexity due to the challenges of controlling and coordinating  the movements of several UAVs at once. This project aims to use the swarm aproach to create a solution to a forest fight scenario developed by SARC (*Swedish Aerospace Research Center*), which will be simulated using the Gazebo environment and ROS services.
+In the modern world, working with a swarm of drones is gaining increasing prominence in research and  academic work due to its great potential for applicability. However, even though it is becoming more  common, it still presents a high level of complexity due to the challenges of controlling and coordinating  the movements of several UAVs at once. This project aims to use the swarm aproach to create a solution to a forest fight scenario developed by SARC (*Swedish Aerospace Research Center*) in its competition 2nd Sarc-barinet Aerospace-Competition ([edital](https://sarc.center/2nd-sarc-barinet-aerospace-competition/)), which will be simulated using the Gazebo environment and ROS services.
 
 <p align="center">
   <img width="800" src="./assets/simulation_starting.gif">
 </p>
 
-<p align="center">
-  <img width="800" src="./assets/simulation_starting.mp4">
-</p>
+## Simulation Video
 
-![teste](./assets/simulation_starting.mp4)
+In order to enable the visualization of the project without the need to compile the code developed here, a YouTube video showing a recording of the simulation performed is shown below. It is worth mentioning that the simulation time differs from the real time, since there are delays due to the computation of the environment. In this way, the video is accelerated in order to present the real time as the simulated time (6:40 minutes).
+
+[![Final Video](https://www.youtube.com/watch?v=N1TAa1z4Fp0/0.jpg)](https://www.youtube.com/watch?v=N1TAa1z4Fp0)
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=N1TAa1z4Fp0" title="Link Title">
+	  <img img width="500" height="281" src="https://www.youtube.com/watch?v=N1TAa1z4Fp0/0.jpg"/>
+  </a>
+</p>
 
 ## How it works
 
@@ -122,10 +128,16 @@ In order to improve the user experience, the Tmux terminal multiplexer was used 
 
 ## Conclusion
 
+In the last 2 months our group has developed great knowledge about the drone swarm and firefighting concept, in addition to all other topics such as computer vision, control, mechanics and electronics. From this knowledge it was possible to create the NoFire Squad project in an attempt to carry out the fire fighting presented by the SARC in the most efficient way using a swarm. 
+
+For our group, the development presented here demonstrates a very satisfactory result for our student development. We believe that there are still points for improvement such as the use of more sensors, a more robust patrol or a more intense fire fighting with a greater number of drones, but we believe that what has been presented here proves to be even better than expected due to complexity of the problem. 
+
+Finally, we would like to thank SARC for the opportunity to participate in this competition and for all the support we have had throughout these months.
+
 ### NoFire Squad Team Members
 
 - Daniel Yukio Miguita: [Github](https://github.com/miguita), [Linkedin](http://www.linkedin.com/in/daniel-miguita)
-- Guilherme Barela de Castro: [Github](), [Linkedin]()
+- Guilherme Barela de Castro: [Github](https://github.com/guilherminhobc), [Linkedin](https://www.linkedin.com/in/guilherme-barela-de-castro-57707720b/)
 - Guilherme Barros Villela: [Github](https://github.com/Villela-G), [Linkedin](https://www.linkedin.com/in/guilherme-villela)
 - Lucas Harim Gomes Cavalcanti: [Github](https://github.com/LucasHarim), [Linkedin](https://www.linkedin.com/in/lucas-harim/)
 - Matheus Della Rocca Mastins: [Github](https://github.com/MatheusDrm), [Linkedin](https://www.linkedin.com/in/matheus-martins-9aba09212/)
