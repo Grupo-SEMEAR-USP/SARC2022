@@ -136,7 +136,7 @@ class Swarm:
             if uav_that_found:
                 rospy.loginfo('Fire Founded')
                 self.stop_trajectory()
-                self.create_circle_formation_around_uav(uav_that_found, 10, 30, 30)
+                self.create_circle_formation_around_uav(uav_that_found, 10, 30, 40)
                 self.applyFormation()
 
                 self.state = GOING_TO_FIRE
@@ -418,7 +418,10 @@ class Swarm:
 
         for i in range(self.swarm_size):
             uav = self.uavs[i]
-            position = self.des_formation_coords[i]
+            position = []
+            for j in range(len(self.des_formation_coords[i])):
+                position.append(self.des_formation_coords[i][j])
+            position[3] = 0
             uav.go_to_point(position)
 
     # Operations with the swarm formations
