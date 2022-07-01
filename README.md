@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In the modern world, working with a swarm of drones is gaining increasing prominence in research and  academic work due to its great potential for applicability. However, even though it is becoming more  common, it still presents a high level of complexity due to the challenges of controlling and coordinating  the movements of several UAVs at once. This project aims to use the swarm aproach to create a solution to a forest fight scenario, which will be simulated using the Gazebo environment and ROS services. Using 
+In the modern world, working with a swarm of drones is gaining increasing prominence in research and  academic work due to its great potential for applicability. However, even though it is becoming more  common, it still presents a high level of complexity due to the challenges of controlling and coordinating  the movements of several UAVs at once. This project aims to use the swarm aproach to create a solution to a forest fight scenario developed by SARC (*Swedish Aerospace Research Center*), which will be simulated using the Gazebo environment and ROS services.
 
 <p align="center">
   <img width="500" height="281" src="./assets/simulation_starting.gif">
@@ -14,6 +14,20 @@ The NoFire Squad works with the use of a swarm of 9 independent uavs that commun
 
 <p align="center">
   <img width="800" src="./assets/State_machine.png">
+</p>
+
+Using the state machine, the approach to fire fighting was done through the steps of patrol, center, combat and return to base.
+
+### Patrolling
+
+During the patrolling state, all aircraft, including the central drone, are sent to different quadrants of the region in order to search for the fire source. In each quadrant, the drones will display a Hamiltonian cycle in order to cover their quadrant while looking for the presence of fire in their docked camera. Below is a representation of the patrol trajectory of each aircraft, as well as a representation of the movement of each one within its quadrant.
+
+<p align="center">
+  <img width="500" height="281" src="./assets/patrol_trajectory.png">
+</p>
+
+<p align="center">
+  <img width="500" height="281" src="./assets/patrolling_moviment.gif">
 </p>
 
 ## Getting Started
@@ -37,13 +51,7 @@ This github is presented as a ros package, using as a base the package presented
 
 In order to improve the user experience, the Tmux terminal multiplexer was used to start the entire simulation from a single terminal command. Performing the command, multiple terminals are initialized in order to start the ROS environment, open the gazebo environment, spawn the aircraft and start the algorithm presented here.
 
-- If you already have a ROS environment initialized, you can run the command in terminal
-
-```
-rosrun no_fire_squad start.sh
-```
-
-- Otherwise, go to the folder start and running start.sh, using in the terminal
+- In order to run the simulation, go to the folder start and running start.sh, using in the terminal
 
 ```
 ./start.sh
