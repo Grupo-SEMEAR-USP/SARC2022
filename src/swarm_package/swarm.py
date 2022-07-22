@@ -7,7 +7,6 @@ from swarm_package.uav import UAV
 from swarm_package import helper
 
 # Import Libraries
-import pandas as pd
 import numpy as np
 import rospy
 import os
@@ -84,30 +83,6 @@ class Swarm:
         for t in range(time, 0, -1):
             rospy.loginfo(f"{t}...")
             rospy.sleep(0.5)
-
-    def save_drones_travel_position(self) -> None:
-
-        self.points_saved = True
-
-        travels = {}
-        time = []
-
-        for i in range(self.swarm_size):
-            uav = self.uavs[i]
-
-            travel_points = uav.get_travel_points()
-
-            travels[f'uav{uav.uav_id}_x'] = travel_points['x']
-            travels[f'uav{uav.uav_id}_y'] = travel_points['y']
-            travels[f'uav{uav.uav_id}_z'] = travel_points['z']
-
-            if i == 0:
-                time = travel_points['time']
-
-        data_frame = pd.DataFrame(travels, index=time)
-        data_frame.to_csv('data/travel_points.csv')
-
-        rospy.loginfo("Drones Positions Saved!")
 
     def update(self):
 
