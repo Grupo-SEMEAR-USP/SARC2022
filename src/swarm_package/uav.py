@@ -14,7 +14,7 @@ import rospy
 
 # Importing Ros Messages
 from mrs_msgs.msg import Path, Reference, VelocityReferenceStamped, VelocityReference
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, Wrench
 from std_msgs.msg import Header
 
 # Importing Ros Services
@@ -22,6 +22,11 @@ from mrs_msgs.srv import ReferenceStampedSrv, TrajectoryReferenceSrv, PathSrv, V
 from mrs_msgs.srv import ReferenceStampedSrvResponse, PathSrvResponse
 from std_srvs.srv import Trigger
 from std_srvs.srv import TriggerResponse
+
+# Importing Gazebo Service to apply force 
+from gazebo_msgs.srv import ApplyBodyWrench
+#TODO: Verificar a possibilidade de pegar a massa do drone (f450) via script
+#! A forca para anular o peso do drone deve ser contínua e nao em forma de impulsos!
 
 
 class UAV:
@@ -80,6 +85,9 @@ class UAV:
         self.waiting_time = None
         self.saving_data = False
 
+        # Permite aplicar uma forca no drone
+        self.wrench = Wrench()
+
         self.aux_vars_dict: dict = {'aux_var1': np.pi}
 
         #rospy.loginfo(f'UAV{self.uav_id} INIT SUCCEEDED')
@@ -95,7 +103,10 @@ class UAV:
             colocando todos na funcao configure().
             
         '''
-        
+        #https://answers.ros.org/question/11047/applying-a-force-to-a-rigid-body/
+        rospy.wait_for_service(f'gazebo/apply_apply_body_wrench')
+        self.force = rospy.ServiceProxy('gazebo/apply_body_wrench', ApplyBodyWrench)
+
         rospy.wait_for_service(f'{self.uav_name}/uav_manager/takeoff', timeout = None)
 
         rospy.wait_for_service(f'{self.uav_name}/uav_manager/land', timeout = None)
@@ -163,6 +174,19 @@ class UAV:
         if self.saving_data:
             self.gps.save_xyz_position(t0, time_now, rate_hz = 1.0)
 
+    def apply_force(self, force_x, force_y, force_z, duration_sec,torque_x = 0, torque_y = 0, torque_z = 0) -> None:
+
+            self.wrench.force.x = force_x
+            self.wrench.force.y = force_y
+            self.wrench.force.z = force_z
+            self.wrench.torque_x = torque_x
+            self.wrench.torque_y = torque_y
+            self.wrench.torque_z = torque_z
+
+            #call service
+            #! Nao sei se tá certo o path do base_link
+            self.force(body_name = f'{self.uav_name}/base_link', wrench = self.wrench, duration = rospy.Duration(secs = duration_sec))
+        
 
     def get_travel_points(self) -> dict:
         return self.gps.get_travel_points()
