@@ -114,6 +114,24 @@ To make this change, it is necessary to change line 1855 in the *component_snipp
 <far>150</far>
 ```
 
+Another necessary change refers to the functionality of checking the maximum flight height by MRS. By default, MRS control ceases to function properly for drones that exceed this threshold height. So, for the code to run as expected, it is necessary to make the following change uav.manager.yaml file (line 13), which can be found in the path "~/mrs_workspace/src/uav_core/ros_packages/mrs_uav_managers/config/default". The necessary change in the file is described below:
+
+- Before
+
+```html
+max_height_checking:
+
+  enabled: true
+```
+
+- After
+
+```html
+max_height_checking:
+
+  enabled: false
+```
+
 #### Running the simulation
 
 In order to improve the user experience, the Tmux terminal multiplexer was used to start the entire simulation from a single terminal command. Performing the command, multiple terminals are initialized in order to start the ROS environment, open the gazebo environment, spawn the aircraft and start the algorithm presented here.
