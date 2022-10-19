@@ -104,8 +104,6 @@ class UAV:
             
         '''
         #https://answers.ros.org/question/11047/applying-a-force-to-a-rigid-body/
-        rospy.wait_for_service(f'gazebo/apply_apply_body_wrench')
-        self.force = rospy.ServiceProxy('gazebo/apply_body_wrench', ApplyBodyWrench)
 
         rospy.wait_for_service(f'{self.uav_name}/uav_manager/takeoff', timeout = None)
 
