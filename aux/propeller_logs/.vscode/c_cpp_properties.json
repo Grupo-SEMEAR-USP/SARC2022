@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/lucas/mrs_workspace/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mavros/libmavconn/include/**",
+        "/home/lucas/mrs_workspace/src/simulation/ros_packages/mavlink_sitl_gazebo/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mavros/mavros/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mavros/mavros_msgs/include/**",
+        "/home/lucas/mrs_workspace/src/simulation/ros_packages/mrs_gazebo_common_resources/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_lib/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_rviz_plugins/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_controllers/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_general/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_managers/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_odometry/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_status/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_trackers/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mrs_uav_trajectory_generation/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/thirdparty/nlopt_ros/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/mavros/test_mavros/include/**",
+        "/home/lucas/mrs_workspace/src/uav_core/ros_packages/thirdparty/tf2/tf2/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
