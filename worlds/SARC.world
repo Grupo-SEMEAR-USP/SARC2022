@@ -1199,7 +1199,7 @@
         </model>
 			<model name='SARckc'>
           <include>
-            <pose>-125 -125 100 0 0 -0.785398</pose>
+            <pose>0 0 100 0 0 -0.785398</pose>
             <uri>model://SARckc</uri>
           </include>
         </model>
